@@ -23,3 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 .wrangler
+
+# Local design tools, browser captures and review reports
+/.agents/
+/.taste-skill/
+/skills-lock.json
+
+# Local asset copies; application assets are tracked in public/assets
+/assets/
+
+# Unused media downloaded during design exploration
+/public/assets/cooking-squilla-mantis-with-tomato-sauce-poster.jpg
+/public/assets/cooking-squilla-mantis-with-tomato-sauce.webm
+/public/assets/credits.json
