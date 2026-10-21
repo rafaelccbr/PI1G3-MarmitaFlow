@@ -174,9 +174,32 @@ npm run build
 
 ---
 
-## 🌐 8. Como Hospedar no GitHub Pages
+## ⚡ 8. Como Hospedar no Cloudflare Pages (Recomendado)
 
-O projeto já está com o pipeline de **GitHub Actions** configurado em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+O **Cloudflare Pages** é a melhor opção para este projeto: é **100% gratuito**, oferece CDN global ultrarrápida, SSL automático e suporta repositórios **privados** sem nenhuma cobrança.
+
+### Passo a Passo no Cloudflare:
+1. Acesse o painel da Cloudflare: **[dash.cloudflare.com](https://dash.cloudflare.com/)**
+2. No menu lateral, clique em **Workers e Pages** ➔ **Criar** ➔ selecione a aba **Pages**.
+3. Clique em **Conectar ao Git** e selecione sua conta do GitHub (`rafaelccbr`).
+4. Escolha o repositório **`Projeto-integrador1`**.
+5. Na tela de configuração de build:
+   - **Nome do projeto:** `marmitaflow` (ou `projeto-integrador1`)
+   - **Branch de produção:** `main`
+   - **Predefinição de framework:** `Vite`
+   - **Comando de compilação (Build command):** `npm run build`
+   - **Diretório de saída da compilação (Build output directory):** `dist`
+   - **Diretório raiz (Root directory):** `/` *(deixar vazio ou padrão)*
+6. Clique em **Salvar e Implantar** (*Save and Deploy*).
+
+Em menos de 1 minuto, a Cloudflare compila e gera uma URL instantânea no formato:  
+👉 `https://marmitaflow.pages.dev` (com atualizações automáticas a cada `git push`!).
+
+---
+
+## 🌐 9. Como Hospedar no GitHub Pages (Alternativa)
+
+O projeto também conta com o pipeline de **GitHub Actions** configurado em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
 ### Passos no GitHub:
 1. Acesse o seu repositório no GitHub: `https://github.com/rafaelccbr/Projeto-integrador1`
@@ -186,6 +209,8 @@ O projeto já está com o pipeline de **GitHub Actions** configurado em [`.githu
 4. Faça qualquer push na branch `main` (ou clique na aba **Actions** e execute o workflow manualmente).
 5. O site será compilado e publicado automaticamente com URL no formato:
    `https://rafaelccbr.github.io/Projeto-integrador1/`
+
+*(Nota: no GitHub Pages gratuito, o repositório precisa estar como Público).*
 
 ---
 
