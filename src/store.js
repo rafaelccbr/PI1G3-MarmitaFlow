@@ -1,6 +1,6 @@
 // MarmitaFlow - Multi-Tenant State Store com Autenticação e Restaurantes Independentes
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   RESTAURANTS: 'marmitaflow_restaurants_v2',
   PRODUCTS: 'marmitaflow_products_v2',
   ORDERS: 'marmitaflow_orders_v2',
@@ -329,6 +329,10 @@ class MultiTenantStore {
 
   // --- Criar Novo Restaurante Independente ---
   createRestaurant(data) {
+    const email = data.adminEmail.toLowerCase().trim();
+    if (this.restaurants.some(restaurant => restaurant.adminEmail === email)) {
+      throw new Error('Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.');
+    }
     const slug = data.name.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]/g, '-')
@@ -349,7 +353,7 @@ class MultiTenantStore {
       pixKeyType: data.pixKeyType || 'Chave Aleatória',
       phone: data.phone || '(11) 99999-8888',
       address: data.address || 'São Paulo - SP',
-      deliveryFee: parseFloat(data.deliveryFee) || 3.00,
+      deliveryFee: Number.isFinite(Number(data.deliveryFee)) ? Math.max(0, Number(data.deliveryFee)) : 3.00,
       deliveryTime: data.deliveryTime || '30-45 min',
       rating: '5.0 (Novo)',
       isOpen: true,
@@ -477,8 +481,9 @@ class MultiTenantStore {
   }
 
   getCartTotal(restaurant) {
-    const subtotal = this.cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
-    const deliveryFee = this.cart.length > 0 && restaurant ? restaurant.deliveryFee : 0;
+    const items = restaurant ? this.cart.filter(item => item.restaurantId === restaurant.id) : this.cart;
+    const subtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+    const deliveryFee = items.length > 0 && restaurant ? restaurant.deliveryFee : 0;
     return {
       subtotal,
       deliveryFee,

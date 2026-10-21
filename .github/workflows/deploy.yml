@@ -24,11 +24,14 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.node-version'
           cache: 'npm'
 
       - name: Instalar Dependências
         run: npm ci
+
+      - name: Validar regras do projeto
+        run: npm test
 
       - name: Compilar Projeto (Vite Build)
         run: npm run build

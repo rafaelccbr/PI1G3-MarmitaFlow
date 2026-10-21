@@ -1,11 +1,13 @@
 // MarmitaFlow - Entrada Principal com Roteamento Hash e Multi-Tenant
 import './style.css';
-import { store } from './store.js';
+import './refinements.css';
+import { setupAccessibility, escapeHTML, clearRestaurantTheme } from './ui.js';
+import { store, STORAGE_KEYS } from './store.js';
 import { sounds } from './audio.js';
 
 // Importação das Telas Independentes
 import { renderPlatformHome } from './views/PlatformHome.js';
-import { renderRestaurantMenu } from './views/RestaurantMenu.js';
+import { renderRestaurantMenu, resetMenuState } from './views/RestaurantMenu.js';
 import { renderAdminDashboard } from './views/AdminDashboard.js';
 import { renderAdminLogin } from './views/AdminLogin.js';
 import { renderCreateRestaurant } from './views/CreateRestaurant.js';
@@ -42,40 +44,57 @@ function initApp() {
   app.innerHTML = `
     <!-- Topbar Global do MarmitaFlow -->
     <header class="app-header" id="global-header">
-      <div class="brand-badge" id="nav-brand-click">
-        <img src="/assets/mascote_flow.jpg" alt="MarmitaFlow Logo" />
-        <div class="brand-text">
-          <h1>Marmita<span>Flow</span></h1>
-          <p>Plataforma de Cardápios Digitais</p>
+      <div class="header-inner">
+        <a class="brand-badge" id="nav-brand-click" href="#/plataforma" aria-label="MarmitaFlow — início">
+          <img src="/assets/mascote_flow.jpg" alt="MarmitaFlow Logo" />
+          <div class="brand-text">
+            <span class="brand-title">MarmitaFlow</span>
+            <span class="brand-desc">Cardápios Digitais</span>
+          </div>
+        </a>
+
+        <button class="mobile-nav-toggle btn-secondary" id="mobile-nav-toggle" aria-controls="nav-tabs-bar" aria-expanded="false">Menu <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M2 4h12M2 8h12M2 12h12"/></svg></button>
+
+        <nav class="nav-tabs" id="nav-tabs-bar" aria-label="Navegação principal">
+          <button class="nav-tab-btn" data-target="plataforma">
+            Início
+          </button>
+          <button class="nav-tab-btn" data-target="marmita-flow">
+            Restaurante Conceito
+          </button>
+          <button class="nav-tab-btn" data-target="criar-restaurante">
+            Abrir Restaurante
+          </button>
+          <button class="nav-tab-btn" data-target="sobre">
+            Sobre o Projeto
+          </button>
+        </nav>
+
+        <div class="header-actions" id="header-actions-area">
+          <!-- Renderizado dinamicamente com base na autenticação -->
         </div>
-      </div>
-
-      <nav class="nav-tabs" id="nav-tabs-bar">
-        <button class="nav-tab-btn" data-target="plataforma">
-          🌐 Início (Plataforma)
-        </button>
-        <button class="nav-tab-btn" data-target="marmita-flow">
-          🍱 Marmita Flow (Oficial)
-        </button>
-        <button class="nav-tab-btn" data-target="criar-restaurante">
-          ✨ Abrir Restaurante
-        </button>
-        <button class="nav-tab-btn" data-target="sobre">
-          🎓 Sobre o Projeto
-        </button>
-      </nav>
-
-      <div class="header-actions" id="header-actions-area">
-        <!-- Renderizado dinamicamente com base na autenticação -->
       </div>
     </header>
 
     <!-- Área de Exibição da Página Ativa -->
-    <main id="view-root"></main>
+    <main id="view-root" tabindex="-1"></main>
   `;
 
   // Eventos de Navegação do Header
   app.querySelector('#nav-brand-click')?.addEventListener('click', () => navigateTo('plataforma'));
+  const menuToggle = app.querySelector('#mobile-nav-toggle');
+  menuToggle.addEventListener('click', () => {
+    const expanded = menuToggle.getAttribute('aria-expanded') !== 'true';
+    menuToggle.setAttribute('aria-expanded', String(expanded));
+    app.querySelector('#nav-tabs-bar').classList.toggle('is-open', expanded);
+  });
+  setupAccessibility(app.querySelector('#view-root'));
+  document.querySelector('.skip-link')?.addEventListener('click', event => {
+    event.preventDefault();
+    const content = app.querySelector('#view-root');
+    content.focus();
+    content.scrollIntoView();
+  });
 
   app.querySelectorAll('.nav-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -94,9 +113,13 @@ function initApp() {
 
   // Escuta alteração da rota na URL (hashchange)
   window.addEventListener('hashchange', () => {
+    resetMenuState();
+    menuToggle.setAttribute('aria-expanded', 'false');
+    app.querySelector('#nav-tabs-bar').classList.remove('is-open');
     updateHeaderUI();
     renderActiveRoute();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('view-root').focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   });
 
   // Reatividade a mudanças no Store
@@ -106,11 +129,22 @@ function initApp() {
     }
     prevOrderCount = store.orders.length;
     updateHeaderUI();
+    if (parseHash().route === 'cozinha') renderActiveRoute();
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (!Object.values(STORAGE_KEYS).includes(event.key) && event.key !== null) return;
+    store.loadState();
+    store.notify();
+    const { route } = parseHash();
+    if (route === 'cardapio' && !document.querySelector('input:focus, textarea:focus')) renderActiveRoute();
+    if (route === 'admin' && !store.getLoggedRestaurant()) navigateTo('admin-login');
   });
 }
 
 function updateHeaderUI() {
   const { route, param } = parseHash();
+  document.getElementById('global-header').hidden = route === 'cardapio';
   const loggedRest = store.getLoggedRestaurant();
   const actionsArea = document.getElementById('header-actions-area');
 
@@ -123,6 +157,8 @@ function updateHeaderUI() {
     else if (target === 'criar-restaurante' && route === 'criar-restaurante') isActive = true;
     else if (target === 'sobre' && route === 'sobre') isActive = true;
     btn.classList.toggle('active', isActive);
+    if (isActive) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
   });
 
   // Ações do cabeçalho
@@ -130,7 +166,7 @@ function updateHeaderUI() {
     if (store.auth.loggedIn && loggedRest) {
       actionsArea.innerHTML = `
         <button class="btn-primary" id="btn-hdr-admin" style="font-size: 0.85rem; padding: 8px 16px;">
-          ⚙️ Painel: ${loggedRest.name}
+          Painel: ${escapeHTML(loggedRest.name)}
         </button>
         <button class="btn-secondary" id="btn-hdr-logout" style="font-size: 0.85rem; padding: 8px 14px; color: var(--color-danger);">
           Sair
@@ -144,10 +180,10 @@ function updateHeaderUI() {
     } else {
       actionsArea.innerHTML = `
         <button class="btn-secondary" id="btn-hdr-login" style="font-size: 0.85rem; padding: 8px 16px;">
-          🔐 Área do Dono
+          Área do Dono
         </button>
         <button class="btn-primary" id="btn-hdr-create" style="font-size: 0.85rem; padding: 8px 16px;">
-          ✨ Cadastrar Loja
+          Cadastrar Loja
         </button>
       `;
       actionsArea.querySelector('#btn-hdr-login')?.addEventListener('click', () => navigateTo('admin-login'));
@@ -161,6 +197,12 @@ function renderActiveRoute() {
   if (!viewRoot) return;
 
   const { route, param } = parseHash();
+  document.documentElement.style.removeProperty('--color-primary');
+  document.documentElement.style.removeProperty('--color-secondary');
+  clearRestaurantTheme(viewRoot);
+  document.body.dataset.page = route;
+  const titles = { plataforma: 'Cardápios digitais para marmitarias', cardapio: 'Cardápio', admin: 'Painel do restaurante', 'admin-login': 'Área do dono', 'criar-restaurante': 'Cadastrar restaurante', cozinha: 'Cozinha', sobre: 'Sobre o projeto' };
+  document.title = `${titles[route] || titles.plataforma} | MarmitaFlow`;
 
   switch (route) {
     case 'plataforma':

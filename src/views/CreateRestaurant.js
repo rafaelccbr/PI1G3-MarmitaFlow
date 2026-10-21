@@ -14,6 +14,7 @@ const PRESET_COLORS = [
 let selectedColor = '#FF6B00';
 
 export function renderCreateRestaurant(container, navigateTo) {
+  selectedColor = '#FF6B00';
   container.innerHTML = `
     <div class="auth-page-container" style="max-width: 780px;">
       <div class="auth-card" style="max-width: 100%;">
@@ -22,11 +23,13 @@ export function renderCreateRestaurant(container, navigateTo) {
           <div class="auth-logo-badge">
             <span>✨</span>
           </div>
-          <h2>Cadastrar Novo Restaurante</h2>
+          <h1>Seu restaurante no digital.</h1>
           <p>Crie seu cardápio digital independente em minutos na plataforma MarmitaFlow</p>
         </div>
 
         <form id="create-restaurant-form" class="auth-form">
+          <p class="demo-notice">Projeto de demonstração: o cadastro e os pedidos ficam salvos neste navegador.</p>
+          <div id="register-error" class="login-error-alert" role="alert" hidden></div>
           <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--color-primary); letter-spacing: 1px; margin-bottom: 12px;">
             1. Dados do Seu Estabelecimento
           </div>
@@ -46,7 +49,7 @@ export function renderCreateRestaurant(container, navigateTo) {
           <div class="form-grid-2">
             <div class="form-group">
               <label class="form-label">WhatsApp para Pedidos</label>
-              <input type="text" id="new-rest-phone" class="form-input" placeholder="(11) 99876-5432" required />
+              <input type="tel" autocomplete="tel" id="new-rest-phone" class="form-input" placeholder="(11) 99876-5432" required />
             </div>
 
             <div class="form-group">
@@ -63,7 +66,7 @@ export function renderCreateRestaurant(container, navigateTo) {
 
             <div class="form-group">
               <label class="form-label">Taxa de Entrega Padrão (R$)</label>
-              <input type="number" step="0.50" id="new-rest-fee" class="form-input" value="4.00" />
+              <input type="number" min="0" step="0.01" id="new-rest-fee" class="form-input" value="4.00" required />
             </div>
           </div>
 
@@ -95,12 +98,12 @@ export function renderCreateRestaurant(container, navigateTo) {
           <div class="form-grid-2">
             <div class="form-group">
               <label class="form-label">E-mail para Acessar seu Painel</label>
-              <input type="email" id="new-admin-email" class="form-input" placeholder="dono@meurestaurante.com" required />
+              <input type="email" autocomplete="username" id="new-admin-email" class="form-input" placeholder="dono@meurestaurante.com" required />
             </div>
 
             <div class="form-group">
               <label class="form-label">Crie uma Senha Segura</label>
-              <input type="password" id="new-admin-pass" class="form-input" placeholder="No mínimo 6 caracteres" required />
+              <input type="password" autocomplete="new-password" minlength="6" id="new-admin-pass" class="form-input" placeholder="No mínimo 6 caracteres" required />
             </div>
           </div>
 
@@ -141,8 +144,8 @@ export function renderCreateRestaurant(container, navigateTo) {
   // Envio do formulário
   container.querySelector('#create-restaurant-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = container.querySelector('#new-rest-name').value;
-    const ownerName = container.querySelector('#new-rest-owner').value;
+    const name = container.querySelector('#new-rest-name').value.trim();
+    const ownerName = container.querySelector('#new-rest-owner').value.trim();
     const phone = container.querySelector('#new-rest-phone').value;
     const pixKey = container.querySelector('#new-rest-pix').value;
     const address = container.querySelector('#new-rest-address').value;
@@ -150,17 +153,30 @@ export function renderCreateRestaurant(container, navigateTo) {
     const adminEmail = container.querySelector('#new-admin-email').value;
     const adminPass = container.querySelector('#new-admin-pass').value;
 
-    const newRest = store.createRestaurant({
-      name,
-      ownerName,
-      phone,
-      pixKey,
-      address,
-      deliveryFee,
-      primaryColor: selectedColor,
-      adminEmail,
-      adminPass
-    });
+    const error = container.querySelector('#register-error');
+    error.hidden = true;
+    if (!name || !ownerName || adminPass.trim().length < 6) {
+      error.textContent = 'Preencha o nome do restaurante, seu nome e uma senha com pelo menos 6 caracteres.';
+      error.hidden = false;
+      return;
+    }
+    try {
+      store.createRestaurant({
+        name,
+        ownerName,
+        phone,
+        pixKey,
+        address,
+        deliveryFee,
+        primaryColor: selectedColor,
+        adminEmail,
+        adminPass
+      });
+    } catch (reason) {
+      error.textContent = reason.message;
+      error.hidden = false;
+      return;
+    }
 
     // Redireciona diretamente para o painel de administração dele
     navigateTo('admin');

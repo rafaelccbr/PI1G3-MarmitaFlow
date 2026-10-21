@@ -3,6 +3,12 @@
 > **"O cardápio digital que conecta pedido, estoque, pagamento e cozinha em tempo real."**  
 > *Projeto Acadêmico Integrador • Experiência de Delivery Real • Zero Rasuras • 100% Personalizável*
 
+Esta versão é uma demonstração local: restaurantes, contas e pedidos ficam no `localStorage` do navegador. Pix e cartão têm confirmação simulada, sem cobrança ou integração bancária. Abas da mesma origem sincronizam os pedidos e o preparo.
+
+O endereço `#/cardapio/:slug` abre a página do cliente diretamente, sem navegação da plataforma, cadastro ou controles de visualização. A marca e a cor salvas no painel são aplicadas ao cardápio. O dono pode abrir essa página em outra aba e copiar seu link pelo painel; o QR Code usa o mesmo endereço. Para compartilhar novos restaurantes e receber pedidos entre dispositivos, é necessário implementar persistência compartilhada no servidor e publicar a aplicação.
+
+Para validar as regras de carrinho e cadastro, execute `npm test`. Para gerar a versão de produção, execute `npm run build`. No PowerShell com scripts bloqueados, use `npm.cmd`.
+
 ---
 
 ## 👥 Integrantes do Projeto
@@ -69,7 +75,7 @@ graph TD
 - **Sacola de Pedidos:** Alternador entre Entrega e Retirada no balcão, cupom promocional (`MARMITA10` = 10% OFF).
 - **Checkout com Pix Instantâneo:** Geração de QR Code via biblioteca `qrcode`, código copia-e-cola, celebração com chuva de confetes (`canvas-confetti`) e som de sucesso.
 - **Rastreador de Pedido em Tempo Real:** Acompanhamento ao vivo do preparo da refeição.
-- **Alternador Desktop / Celular (App):** Permite simular a experiência mobile-first com moldura de celular e notch de 5G.
+- **Página Pública Responsiva:** O cliente acessa diretamente o restaurante, com cor própria, pratos, busca, categorias e sacola; o layout se adapta ao celular e ao desktop.
 
 ### ⚙️ Painel Administrativo Protegido do Dono (`#/admin`)
 - **Autenticação Segura (Auth Guard):** Acesso exclusivo para o proprietário logado.
@@ -105,7 +111,7 @@ Para testar o acesso administrativo imediatamente na tela `#/admin-login`:
 - **Core:** JavaScript Moderno (ES6+), HTML5 Semântico.
 - **Estilização:** Vanilla CSS Moderno Modular com Design Tokens (HSL, Glassmorphism, Micro-animações).
 - **Build & Dev Server:** [Vite](https://vitejs.dev/) com Hot Module Replacement (HMR).
-- **Tipografia:** Google Fonts (*Outfit* e *Plus Jakarta Sans*).
+- **Tipografia:** Google Fonts (*Literata* nos títulos e *Plus Jakarta Sans* nos controles e textos).
 - **Geração de QR Code:** `qrcode` (renderização dinâmica em Canvas).
 - **Micro-interações:** `canvas-confetti` (celebração de pagamento).
 - **Efeitos Sonoros:** Web Audio API nativa (chime de cozinha e confirmação de Pix sem arquivos pesados de áudio).

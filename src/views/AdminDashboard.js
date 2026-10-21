@@ -1,6 +1,7 @@
 // MarmitaFlow - Painel Administrativo Protegido do Proprietário
 import { store } from '../store.js';
 import QRCode from 'qrcode';
+import { applyRestaurantTheme, restaurantMenuUrl, escapeHTML } from '../ui.js';
 
 let activeAdminTab = 'branding'; // 'branding', 'menu', 'stock', 'qrcode'
 let editingProductId = null;
@@ -31,6 +32,8 @@ export function renderAdminDashboard(container, navigateTo) {
   }
 
   const products = store.getProductsByRestaurant(restaurant.id);
+  applyRestaurantTheme(container, restaurant);
+  const publicUrl = restaurantMenuUrl(restaurant.slug);
   const orders = store.getOrdersByRestaurant(restaurant.id);
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 
@@ -43,19 +46,18 @@ export function renderAdminDashboard(container, navigateTo) {
           <img src="${restaurant.logoUrl}" alt="${restaurant.name}" class="admin-topbar-logo" />
           <div>
             <div class="admin-topbar-title">
-              <h2>${restaurant.name}</h2>
+              <h1>${restaurant.name}</h1>
               <span class="admin-badge-protected">🔒 Painel do Proprietário</span>
             </div>
             <p class="admin-topbar-user">
               Administrador: <strong>${store.auth.ownerName || 'Dono'}</strong> (${store.auth.userEmail})
             </p>
+            <p class="admin-topbar-user">${orders.filter(order => order.status !== 'entregue').length} pedidos em andamento · ${products.filter(product => !product.available).length} itens esgotados</p>
           </div>
         </div>
 
         <div class="admin-topbar-actions">
-          <button class="btn-primary" id="btn-admin-view-menu" style="background: ${restaurant.primaryColor};">
-            🍱 Ver Cardápio Público
-          </button>
+          <a class="btn-primary" id="btn-admin-view-menu" href="${escapeHTML(publicUrl)}" target="_blank" rel="noopener">Ver página do restaurante ↗</a>
           <button class="btn-secondary" id="btn-admin-view-kds">
             👨‍🍳 Abrir Cozinha (KDS)
           </button>
@@ -64,6 +66,19 @@ export function renderAdminDashboard(container, navigateTo) {
           </button>
         </div>
       </div>
+
+      <section class="restaurant-share-panel" aria-labelledby="share-heading">
+        <div>
+          <h2 id="share-heading">Seu link para receber pedidos</h2>
+          <p>O cliente abre direto o cardápio, com a sua marca e seus pratos.</p>
+        </div>
+        <div class="restaurant-share-actions">
+          <label class="sr-only" for="restaurant-public-link">Link do cardápio do restaurante</label>
+          <input class="form-input" id="restaurant-public-link" value="${escapeHTML(publicUrl)}" readonly />
+          <button class="btn-primary" id="btn-copy-public-menu">Copiar link</button>
+        </div>
+        <p class="share-demo-note">Nesta demonstração, cadastros, alterações e pedidos ficam neste navegador. Para receber pedidos de outras pessoas, será necessário conectar um banco de dados compartilhado e publicar o site.</p>
+      </section>
 
       <!-- MÉTRICAS DO RESTAURANTE -->
       <div class="admin-metrics-grid">
@@ -470,9 +485,19 @@ function attachAdminEvents(container, restaurant, navigateTo) {
   });
 
   // Ações do cabeçalho
-  container.querySelector('#btn-admin-view-menu')?.addEventListener('click', () => {
-    navigateTo('cardapio', restaurant.slug);
-  });
+  const copyPublicLink = async () => {
+    try {
+      await navigator.clipboard.writeText(restaurantMenuUrl(restaurant.slug));
+      showDashToast('Link do cardápio copiado!');
+    } catch {
+      const input = container.querySelector('#restaurant-public-link');
+      input.focus();
+      input.select();
+      showDashToast('Selecione e copie o link no campo do cardápio.');
+    }
+  };
+  container.querySelector('#btn-copy-public-menu')?.addEventListener('click', copyPublicLink);
+  container.querySelector('#btn-dash-copy-link')?.addEventListener('click', copyPublicLink);
 
   container.querySelector('#btn-admin-view-kds')?.addEventListener('click', () => {
     navigateTo('cozinha', restaurant.slug);
@@ -495,8 +520,7 @@ function attachAdminEvents(container, restaurant, navigateTo) {
         });
         const customColor = container.querySelector('#dash-custom-color');
         if (customColor) customColor.value = chosenColor;
-        const btnViewMenu = container.querySelector('#btn-admin-view-menu');
-        if (btnViewMenu) btnViewMenu.style.background = chosenColor;
+        applyRestaurantTheme(container, restaurant, chosenColor);
       });
     });
 
@@ -506,8 +530,7 @@ function attachAdminEvents(container, restaurant, navigateTo) {
       container.querySelectorAll('.color-swatch-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.hex.toUpperCase() === chosenColor.toUpperCase());
       });
-      const btnViewMenu = container.querySelector('#btn-admin-view-menu');
-      if (btnViewMenu) btnViewMenu.style.background = chosenColor;
+      applyRestaurantTheme(container, restaurant, chosenColor);
     });
 
     container.querySelector('#admin-branding-form')?.addEventListener('submit', (e) => {
@@ -576,7 +599,7 @@ function attachAdminEvents(container, restaurant, navigateTo) {
   if (activeAdminTab === 'qrcode') {
     const canvas = container.querySelector('#dash-qr-canvas');
     if (canvas) {
-      const menuUrl = `${window.location.origin}/#/cardapio/${restaurant.slug}`;
+      const menuUrl = restaurantMenuUrl(restaurant.slug);
       QRCode.toCanvas(canvas, menuUrl, { width: 200, margin: 1, color: { dark: '#0F172A', light: '#FFFFFF' } }, (err) => {
         if (err) console.error(err);
       });
@@ -586,11 +609,6 @@ function attachAdminEvents(container, restaurant, navigateTo) {
       window.print();
     });
 
-    container.querySelector('#btn-dash-copy-link')?.addEventListener('click', () => {
-      const menuUrl = `${window.location.origin}/#/cardapio/${restaurant.slug}`;
-      navigator.clipboard.writeText(menuUrl);
-      showDashToast('Link do cardápio copiado!');
-    });
   }
 
   // Modal de Produto

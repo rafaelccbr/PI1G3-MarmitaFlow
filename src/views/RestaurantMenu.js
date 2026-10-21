@@ -3,6 +3,7 @@ import { store, CUSTOMIZATION_OPTIONS } from '../store.js';
 import { sounds } from '../audio.js';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
+import { escapeHTML, applyRestaurantTheme } from '../ui.js';
 
 let activeCategory = 'Todos';
 let searchQuery = '';
@@ -11,27 +12,43 @@ let currentCustomization = null;
 let isCartOpen = false;
 let isCheckoutOpen = false;
 let activeOrderTrackingId = null;
-let viewFormat = 'desktop'; // 'desktop' ou 'mobile'
 let discountPercent = 0;
 let couponCode = '';
 let orderType = 'delivery'; // 'delivery' ou 'pickup'
+let activeRestaurantSlug = null;
+
+export function resetMenuState() {
+  selectedProductForCustomization = null;
+  currentCustomization = null;
+  isCartOpen = false;
+  isCheckoutOpen = false;
+  activeOrderTrackingId = null;
+}
 
 export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow') {
+  if (activeRestaurantSlug !== slug) {
+    resetMenuState();
+    activeCategory = 'Todos';
+    searchQuery = '';
+    discountPercent = 0;
+    couponCode = '';
+    orderType = 'delivery';
+    activeRestaurantSlug = slug;
+  }
   const restaurant = store.getRestaurantBySlug(slug);
   if (!restaurant) {
     container.innerHTML = `
       <div style="text-align: center; padding: 80px 20px;">
-        <h2>Restaurante não encontrado</h2>
-        <button class="btn-primary" id="btn-back-platform" style="margin-top: 16px;">Voltar à Plataforma</button>
+        <h1>Cardápio não encontrado</h1>
+        <p>Confira o link recebido ou entre em contato com o restaurante.</p>
       </div>
     `;
-    container.querySelector('#btn-back-platform')?.addEventListener('click', () => navigateTo('plataforma'));
     return;
   }
 
   // Aplica as cores do restaurante ativo na página
-  document.documentElement.style.setProperty('--color-primary', restaurant.primaryColor || '#FF6B00');
-  document.documentElement.style.setProperty('--color-secondary', restaurant.secondaryColor || '#10B981');
+  applyRestaurantTheme(container, restaurant);
+  document.title = `${restaurant.name} | Cardápio e pedidos`;
 
   // Carrega apenas os pratos deste restaurante
   const products = store.getProductsByRestaurant(restaurant.id);
@@ -53,41 +70,8 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
   });
 
   container.innerHTML = `
-    <div class="restaurant-site-wrapper ${viewFormat === 'mobile' ? 'format-mobile' : 'format-desktop'}">
-      
-      <!-- Barra Superior com Navegação e Formato -->
-      <div class="site-format-bar">
-        <div class="format-bar-info">
-          <button class="btn-secondary" id="btn-back-to-platform" style="padding: 6px 14px; font-size: 0.82rem;">
-            ← Ver Outros Restaurantes
-          </button>
-          <span>Cardápio Oficial de: <strong>${restaurant.name}</strong></span>
-          ${restaurant.isOpen ? '<span class="status-badge-inline open">● Aberto Agora</span>' : '<span class="status-badge-inline closed">● Fechado</span>'}
-        </div>
-        
-        <div class="format-bar-actions">
-          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">Visualização:</span>
-          <div class="format-toggle-btns">
-            <button class="format-btn ${viewFormat === 'desktop' ? 'active' : ''}" id="btn-format-desktop">
-              💻 Site Completo
-            </button>
-            <button class="format-btn ${viewFormat === 'mobile' ? 'active' : ''}" id="btn-format-mobile">
-              📱 Celular (App)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Container do Cardápio do Restaurante -->
-      <div class="site-cardapio-container ${viewFormat === 'mobile' ? 'mobile-mockup-frame' : ''}">
-        
-        ${viewFormat === 'mobile' ? `
-          <div class="mockup-header-notch">
-            <span>9:41</span>
-            <div class="notch-pill"></div>
-            <span>5G 🔋</span>
-          </div>
-        ` : ''}
+    <div class="restaurant-site-wrapper format-desktop">
+      <div class="site-cardapio-container">
 
         <!-- BANNER DE CAPA DO RESTAURANTE -->
         <header class="restaurant-hero-banner">
@@ -128,7 +112,8 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
                 type="text" 
                 id="search-dishes-input" 
                 placeholder="Buscar no cardápio de ${restaurant.name}..." 
-                value="${searchQuery}"
+                value="${escapeHTML(searchQuery)}"
+                aria-label="Buscar pratos no cardápio"
               />
               ${searchQuery ? `<button class="btn-clear-search" id="btn-clear-search">&times;</button>` : ''}
             </div>
@@ -153,7 +138,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
         </div>
 
         <!-- PRATOS DO RESTAURANTE -->
-        <main class="menu-content-area">
+        <section class="menu-content-area" aria-label="Pratos do cardápio">
           <div class="menu-section-header">
             <div>
               <h2>${activeCategory === 'Todos' ? 'Cardápio Completo' : activeCategory}</h2>
@@ -165,7 +150,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
           ${filteredProducts.length === 0 ? `
             <div class="no-results-box">
               <div style="font-size: 3rem; margin-bottom: 12px;">🔍</div>
-              <h3>Nenhum prato encontrado para "${searchQuery}"</h3>
+              <h3>Nenhum prato encontrado para "${escapeHTML(searchQuery)}"</h3>
               <p>Tente buscar por outro termo ou navegue por outras categorias.</p>
               <button class="btn-primary" id="btn-reset-filters" style="margin-top: 14px;">Ver Todos os Itens</button>
             </div>
@@ -191,11 +176,11 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
                       </div>
 
                       ${prod.available ? `
-                        <button class="btn-add-dish" data-id="${prod.id}">
+                        <button class="btn-add-dish" data-id="${prod.id}" aria-label="${prod.isCustomizable ? 'Montar' : 'Adicionar'} ${escapeHTML(prod.name)}" ${!restaurant.isOpen ? 'disabled' : ''}>
                           ${prod.isCustomizable ? 'Montar 🍱' : 'Adicionar +'}
                         </button>
                       ` : `
-                        <button class="btn-dish-unavailable" data-id="${prod.id}">
+                        <button class="btn-dish-unavailable" data-id="${prod.id}" disabled>
                           Indisponível
                         </button>
                       `}
@@ -205,7 +190,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
               `).join('')}
             </div>
           `}
-        </main>
+        </section>
 
         <!-- RODAPÉ DO RESTAURANTE -->
         <footer class="restaurant-page-footer">
@@ -222,14 +207,14 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
       </div>
 
       <!-- BOTÃO FLUTUANTE EM DISPOSITIVO MÓVEL -->
-      ${cart.length > 0 && viewFormat === 'mobile' ? `
-        <div class="mobile-floating-cart-pill" id="btn-mobile-open-cart">
+      ${cart.length > 0 ? `
+        <button class="mobile-floating-cart-pill" id="btn-mobile-open-cart" aria-label="Abrir sacola">
           <div class="m-cart-left">
             <span class="m-cart-badge">${cart.reduce((s, i) => s + i.qty, 0)}</span>
             <span>Ver Sacola</span>
           </div>
           <span class="m-cart-price">R$ ${finalTotal.toFixed(2).replace('.', ',')}</span>
-        </div>
+        </button>
       ` : ''}
 
     </div>
@@ -550,13 +535,14 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
       <div class="modal-content-card">
         <div class="modal-header-bar">
           <div>
-            <h3>Pagamento Seguro</h3>
+            <h3>Finalizar pedido de demonstração</h3>
             <span style="font-size: 0.8rem; color: var(--text-muted);">Pedido enviado direto para a cozinha de ${restaurant.name}</span>
           </div>
           <button class="modal-close-btn" id="btn-close-checkout">&times;</button>
         </div>
 
         <div class="modal-scroll-body">
+          <p class="demo-notice">Este pedido é uma simulação. Nenhum valor será cobrado e não há confirmação bancária nesta versão.</p>
           <div style="margin-bottom: 24px;">
             <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 800; margin-bottom: 12px;">
               📍 Seus Dados para Entrega
@@ -605,28 +591,15 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
               </div>
 
               <button class="btn-primary" id="btn-simulate-pix-paid" style="width: 100%; background: var(--color-secondary); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35); padding: 12px;">
-                ✓ Confirmar Pagamento Pix (R$ ${finalTotal.toFixed(2).replace('.', ',')})
+                Simular pagamento Pix · R$ ${finalTotal.toFixed(2).replace('.', ',')}
               </button>
             </div>
 
             <!-- Cartão -->
             <div id="checkout-card-box" style="display: none; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
-              <div class="form-group" style="margin-bottom: 10px;">
-                <label class="form-label">Número do Cartão</label>
-                <input type="text" class="form-input" placeholder="0000 0000 0000 0000" value="4532 9901 8823 4410" />
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
-                <div class="form-group">
-                  <label class="form-label">Validade</label>
-                  <input type="text" class="form-input" placeholder="MM/AA" value="12/29" />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">CVV</label>
-                  <input type="text" class="form-input" placeholder="123" value="789" />
-                </div>
-              </div>
+              <p style="margin-bottom: 16px; font-size: 14px;">Experimente o fluxo de cartão sem informar dados bancários.</p>
               <button class="btn-primary" id="btn-simulate-card-paid" style="width: 100%; padding: 12px;">
-                Pagar R$ ${finalTotal.toFixed(2).replace('.', ',')} no Cartão
+                Simular pagamento no cartão · R$ ${finalTotal.toFixed(2).replace('.', ',')}
               </button>
             </div>
 
@@ -737,19 +710,6 @@ function calculateCurrentCustomizationPrice(product, custom) {
 }
 
 function attachMenuEvents(container, restaurant, slug, navigateTo) {
-  // Voltar à plataforma
-  container.querySelector('#btn-back-to-platform')?.addEventListener('click', () => navigateTo('plataforma'));
-
-  // Toggle de formato
-  container.querySelector('#btn-format-desktop')?.addEventListener('click', () => {
-    viewFormat = 'desktop';
-    renderRestaurantMenu(container, navigateTo, slug);
-  });
-  container.querySelector('#btn-format-mobile')?.addEventListener('click', () => {
-    viewFormat = 'mobile';
-    renderRestaurantMenu(container, navigateTo, slug);
-  });
-
   // Busca
   const searchInput = container.querySelector('#search-dishes-input');
   if (searchInput) {
@@ -798,7 +758,7 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
     card.addEventListener('click', () => {
       const prodId = card.dataset.id;
       const product = store.products.find(p => p.id === prodId);
-      if (!product || !product.available) return;
+      if (!product || !product.available || !restaurant.isOpen) return;
 
       if (product.isCustomizable) {
         selectedProductForCustomization = product;
@@ -985,11 +945,17 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       });
     }
 
-    container.querySelector('#btn-copy-pix')?.addEventListener('click', () => {
+    container.querySelector('#btn-copy-pix')?.addEventListener('click', async () => {
       const field = container.querySelector('#pix-code-field');
       if (field) {
-        navigator.clipboard.writeText(field.value);
-        showMenuToast('Código Pix copiado! 📋');
+        try {
+          await navigator.clipboard.writeText(field.value);
+          showMenuToast('Código Pix copiado!');
+        } catch {
+          field.focus();
+          field.select();
+          showMenuToast('Selecione e copie o código Pix no campo acima.');
+        }
       }
     });
 
@@ -1017,6 +983,11 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
     });
 
     const handleCompletePayment = (method) => {
+      if (!store.cart.some(item => item.restaurantId === restaurant.id)) return;
+      if (!restaurant.isOpen) {
+        showMenuToast('O restaurante está fechado no momento.');
+        return;
+      }
       const name = container.querySelector('#cust-name-input')?.value || 'Cliente MarmitaFlow';
       const phone = container.querySelector('#cust-phone-input')?.value || '';
       const address = container.querySelector('#cust-address-input')?.value || 'Retirada no Balcão';
@@ -1076,7 +1047,8 @@ function showMenuToast(msg) {
 
   const toast = document.createElement('div');
   toast.className = 'toast-notice';
-  toast.innerHTML = `<span>${msg}</span>`;
+  toast.setAttribute('role', 'status');
+  toast.textContent = msg;
   document.body.appendChild(toast);
 
   setTimeout(() => {

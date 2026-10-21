@@ -26,7 +26,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
             <button class="btn-secondary" id="btn-back-from-kds" style="background: #151D2F; color: #CBD5E1; border-color: #2A364F; padding: 6px 14px; font-size: 0.82rem;">
               ← Voltar ao Painel
             </button>
-            <h2>Cozinha Inteligente (KDS) • ${restaurant.name}</h2>
+            <h1>Cozinha · ${restaurant.name}</h1>
           </div>
           <p>Comandas em tempo real para produção e expedição com checklist de montagem.</p>
         </div>

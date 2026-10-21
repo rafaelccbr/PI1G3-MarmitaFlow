@@ -9,24 +9,31 @@ export function renderAdminLogin(container, navigateTo) {
   }
 
   container.innerHTML = `
-    <div class="auth-page-container">
+    <div class="auth-page-container auth-layout">
+      <aside class="auth-intro">
+        <p class="intro-label">Sua operação, em um só lugar</p>
+        <h2>Mais tempo para<br>o que sai da cozinha.</h2>
+        <p>Atualize o cardápio, acompanhe os pedidos e organize o preparo. Entre para cuidar do seu restaurante.</p>
+        <img src="/assets/feijoada_flow.jpg" alt="Feijoada com arroz, couve e acompanhamentos" width="600" height="400" />
+      </aside>
       <div class="auth-card">
         
         <div class="auth-header">
           <div class="auth-logo-badge">
             <span>🔐</span>
           </div>
-          <h2>Área Restrita do Dono</h2>
+          <h1>Bem-vindo de volta.</h1>
           <p>Acesse o painel administrativo exclusivo do seu restaurante</p>
         </div>
 
         <form id="admin-login-form" class="auth-form">
-          <div id="login-error-alert" class="login-error-alert" style="display: none;"></div>
+          <div id="login-error-alert" class="login-error-alert" role="alert" style="display: none;"></div>
 
           <div class="form-group" style="margin-bottom: 16px;">
             <label class="form-label">E-mail do Administrador</label>
             <input 
               type="email" 
+              autocomplete="username"
               id="admin-email-input" 
               class="form-input" 
               placeholder="exemplo@restaurante.com" 
@@ -39,6 +46,7 @@ export function renderAdminLogin(container, navigateTo) {
             <label class="form-label">Senha de Acesso</label>
             <input 
               type="password" 
+              autocomplete="current-password"
               id="admin-pass-input" 
               class="form-input" 
               placeholder="••••••••" 
@@ -48,14 +56,14 @@ export function renderAdminLogin(container, navigateTo) {
           </div>
 
           <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
-            Entrar no Painel do Restaurante →
+            Entrar no painel →
           </button>
         </form>
 
         <!-- Atalhos rápidos para testar a demonstração -->
         <div class="demo-logins-box">
           <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
-            Atalhos Rápidos de Acesso (Demonstração):
+            Explore uma conta de demonstração
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 8px;">

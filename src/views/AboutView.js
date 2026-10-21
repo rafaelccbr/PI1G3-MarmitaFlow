@@ -8,10 +8,10 @@ export function renderAboutView(container, navigateTo) {
       <!-- HERO INSTITUCIONAL -->
       <section class="about-hero">
         <div class="about-hero-badge">
-          <span>🎓 Projeto Acadêmico Integrador</span>
+          <span>Projeto acadêmico integrador · MarmitaFlow</span>
         </div>
         <h1 class="about-title">
-          A revolução digital das marmitarias e restaurantes.
+          Da escolha ao preparo.
         </h1>
         <p class="about-subtitle">
           Nascido da necessidade real do setor gastronômico de eliminar comandas de papel amassadas, cardápios rasurados e erros de pedidos. O <strong>MarmitaFlow</strong> unifica pedido, estoque, pagamento e cozinha em uma experiência fluida.
@@ -21,7 +21,7 @@ export function renderAboutView(container, navigateTo) {
       <!-- OS PILARES DO MARMITAFLOW -->
       <section class="about-pillars-grid">
         <div class="pillar-card">
-          <div class="pillar-icon">📄🚫</div>
+          <div class="pillar-icon" aria-hidden="true">01 / Cardápio</div>
           <h3>Zero Rasuras & Menus Físicos</h3>
           <p>
             Alimentos e insumos mudam diariamente. Com o MarmitaFlow, o proprietário pausa itens esgotados com 1 clique e altera preços em tempo real, sem reimpressões caras.
@@ -29,7 +29,7 @@ export function renderAboutView(container, navigateTo) {
         </div>
 
         <div class="pillar-card">
-          <div class="pillar-icon">🍱⚡</div>
+          <div class="pillar-icon" aria-hidden="true">02 / Personalização</div>
           <h3>Montagem Guiada Inteligente</h3>
           <p>
             O cliente monta a marmita passo a passo: tamanho, proteína, base de arroz, feijão, guarnições e adicionais. Adeus pedidos truncados por áudio de WhatsApp.
@@ -37,15 +37,15 @@ export function renderAboutView(container, navigateTo) {
         </div>
 
         <div class="pillar-card">
-          <div class="pillar-icon">💰📱</div>
+          <div class="pillar-icon" aria-hidden="true">03 / Pagamento</div>
           <h3>Pix Direto na Conta do Dono</h3>
           <p>
-            Geração instantânea de QR Code dinâmico e código copia-e-cola. O dinheiro vai direto para a chave Pix do proprietário, sem intermediários ou taxas abusivas por transação.
+            O checkout demonstra o pagamento pela chave Pix do proprietário com QR Code e copia-e-cola. Nesta versão acadêmica, a confirmação do pagamento é simulada.
           </p>
         </div>
 
         <div class="pillar-card">
-          <div class="pillar-icon">👨‍🍳📋</div>
+          <div class="pillar-icon" aria-hidden="true">04 / Cozinha</div>
           <h3>Comanda Digital na Cozinha (KDS)</h3>
           <p>
             Os pedidos caem instantaneamente na tela da cozinha com checklist de itens, aviso sonoro e controle de status: Recebido ➔ Em Preparo ➔ Pronto ➔ Entregue.
@@ -59,7 +59,7 @@ export function renderAboutView(container, navigateTo) {
           <span class="story-tag">O Restaurante Modelo</span>
           <h2>Conheça o Marmita Flow Oficial</h2>
           <p>
-            O <strong>Marmita Flow</strong> é o nosso restaurante modelo operando dentro da plataforma SaaS. Ele demonstra na prática como uma marmitaria de alta demanda gerencia seus pratos diários (como a famosa Feijoada Completa e o Frango Fit), oferece personalização aos clientes e otimiza sua operação com zero atrito.
+            O <strong>Marmita Flow</strong> é o restaurante de demonstração da plataforma. Explore os pratos, personalize uma marmita e acompanhe um pedido até a cozinha. Os dados ficam salvos no navegador para você experimentar o fluxo completo.
           </p>
           <div class="story-actions">
             <button class="btn-primary" id="btn-about-visit-mf">
@@ -106,21 +106,6 @@ export function renderAboutView(container, navigateTo) {
             <h4>João Vitor dos Santos</h4>
             <span class="team-role">Qualidade & Regras de Negócio</span>
           </div>
-        </div>
-      </section>
-
-      <!-- TECNOLOGIAS UTILIZADAS -->
-      <section class="tech-stack-card">
-        <h3>Tecnologias & Arquitetura Utilizada</h3>
-        <div class="tech-tags">
-          <span class="tech-tag">JavaScript Moderno (ES6+)</span>
-          <span class="tech-tag">Vite & HMR</span>
-          <span class="tech-tag">Vanilla CSS Modular</span>
-          <span class="tech-tag">Web Audio API (Sons de Cozinha)</span>
-          <span class="tech-tag">QRCode Generator Dinâmico</span>
-          <span class="tech-tag">Canvas Confetti</span>
-          <span class="tech-tag">Multi-Tenant Reactive Store</span>
-          <span class="tech-tag">LocalStorage Persistence</span>
         </div>
       </section>
 
