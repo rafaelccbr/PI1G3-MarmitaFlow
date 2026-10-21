@@ -111,7 +111,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
               <input 
                 type="text" 
                 id="search-dishes-input" 
-                placeholder="Buscar no cardápio de ${restaurant.name}..." 
+                placeholder="Buscar pratos"
                 value="${escapeHTML(searchQuery)}"
                 aria-label="Buscar pratos no cardápio"
               />
@@ -128,13 +128,19 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
           </div>
 
           <!-- Pílulas de Categorias -->
-          <nav class="categories-nav-scroll">
+          <nav class="categories-nav-scroll" aria-label="Filtrar pratos por categoria">
             ${categories.map(cat => `
               <button class="cat-nav-btn ${activeCategory === cat ? 'active' : ''}" data-cat="${cat}">
                 ${getCategoryEmoji(cat)} ${cat}
               </button>
             `).join('')}
           </nav>
+          <div class="mobile-category-filter">
+            <label for="menu-category-select" class="form-label">Categoria</label>
+            <select id="menu-category-select" class="form-select">
+              ${categories.map(category => `<option value="${escapeHTML(category)}" ${activeCategory === category ? 'selected' : ''}>${escapeHTML(category === 'Todos' ? 'Todas as categorias' : category)}</option>`).join('')}
+            </select>
+          </div>
         </div>
 
         <!-- PRATOS DO RESTAURANTE -->
@@ -736,6 +742,11 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
   });
 
   // Categorias
+  container.querySelector('#menu-category-select')?.addEventListener('change', event => {
+    activeCategory = event.target.value;
+    renderRestaurantMenu(container, navigateTo, slug);
+    container.querySelector('#menu-category-select')?.focus({ preventScroll: true });
+  });
   container.querySelectorAll('.cat-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       activeCategory = btn.dataset.cat;
