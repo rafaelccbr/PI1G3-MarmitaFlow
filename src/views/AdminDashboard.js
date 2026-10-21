@@ -61,7 +61,7 @@ export function renderAdminDashboard(container, navigateTo) {
           <button class="btn-secondary" id="btn-admin-view-kds">
             👨‍🍳 Abrir Cozinha (KDS)
           </button>
-          <button class="btn-secondary" id="btn-admin-logout" style="color: var(--color-danger); border-color: #FECACA;">
+          <button class="btn-secondary" id="btn-admin-logout" style="color: var(--color-danger); border-color: var(--color-danger);">
             🚪 Sair
           </button>
         </div>
@@ -273,7 +273,7 @@ export function renderAdminDashboard(container, navigateTo) {
                       </div>
                     </td>
                     <td>
-                      <span style="background: #F1F5F9; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 600;">
+                      <span style="background: var(--bg-subtle); padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 600;">
                         ${prod.category}
                       </span>
                     </td>
@@ -295,7 +295,7 @@ export function renderAdminDashboard(container, navigateTo) {
                         <button class="btn-secondary btn-dash-edit-prod" data-id="${prod.id}" style="padding: 6px 12px; font-size: 0.8rem;">
                           Editar
                         </button>
-                        <button class="btn-secondary btn-dash-delete-prod" data-id="${prod.id}" style="padding: 6px 10px; color: var(--color-danger); border-color: #FECACA; font-size: 0.8rem;">
+                        <button class="btn-secondary btn-dash-delete-prod" data-id="${prod.id}" style="padding: 6px 10px; color: var(--color-danger); border-color: var(--color-danger); font-size: 0.8rem;">
                           Excluir
                         </button>
                       </div>
@@ -320,7 +320,7 @@ export function renderAdminDashboard(container, navigateTo) {
 
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
             ${products.map(prod => `
-              <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+              <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <img src="${prod.image || '/assets/feijoada_flow.jpg'}" alt="${prod.name}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover;" />
                   <div>
@@ -366,10 +366,10 @@ export function renderAdminDashboard(container, navigateTo) {
 
             <canvas id="dash-qr-canvas" style="width: 220px; height: 220px; margin: 0 auto 16px; background: #fff; padding: 12px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);"></canvas>
 
-            <div style="font-size: 0.85rem; font-weight: 700; color: #64748B;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">
               Mesa 01 • Cardápio Digital Oficial
             </div>
-            <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 4px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
               Powered by MarmitaFlow Platform
             </div>
           </div>

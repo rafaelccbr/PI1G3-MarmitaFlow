@@ -602,7 +602,7 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
             </div>
 
             <!-- Cartão -->
-            <div id="checkout-card-box" style="display: none; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+            <div id="checkout-card-box" style="display: none; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
               <p style="margin-bottom: 16px; font-size: 14px;">Experimente o fluxo de cartão sem informar dados bancários.</p>
               <button class="btn-primary" id="btn-simulate-card-paid" style="width: 100%; padding: 12px;">
                 Simular pagamento no cartão · R$ ${finalTotal.toFixed(2).replace('.', ',')}
@@ -653,8 +653,8 @@ function renderOrderTrackerModalHtml(orderId, restaurant, navigateTo) {
                     width: 40px; 
                     height: 40px; 
                     border-radius: 50%; 
-                    background: ${isCurrent ? 'var(--color-primary)' : isPassed ? 'var(--color-secondary)' : '#E2E8F0'}; 
-                    color: ${isPassed || isCurrent ? '#fff' : '#64748B'}; 
+                    background: ${isCurrent ? 'var(--color-primary)' : isPassed ? 'var(--color-secondary)' : 'var(--bg-elevated)'};
+                    color: ${isPassed || isCurrent ? '#fff' : 'var(--text-muted)'};
                     display: flex; 
                     align-items: center; 
                     justify-content: center; 
@@ -677,7 +677,7 @@ function renderOrderTrackerModalHtml(orderId, restaurant, navigateTo) {
             }).join('')}
           </div>
 
-          <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
             <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
               Itens do Pedido:
             </div>
@@ -980,7 +980,7 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       cardBox.style.display = 'none';
       tabPix.style.background = 'var(--color-secondary-light)';
       tabPix.style.color = 'var(--color-secondary-hover)';
-      tabCard.style.background = '#F1F5F9';
+      tabCard.style.background = 'var(--bg-subtle)';
       tabCard.style.color = 'var(--text-main)';
     });
 
@@ -989,7 +989,7 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       cardBox.style.display = 'block';
       tabCard.style.background = 'var(--color-primary-light)';
       tabCard.style.color = 'var(--color-primary)';
-      tabPix.style.background = '#F1F5F9';
+      tabPix.style.background = 'var(--bg-subtle)';
       tabPix.style.color = 'var(--text-main)';
     });
 

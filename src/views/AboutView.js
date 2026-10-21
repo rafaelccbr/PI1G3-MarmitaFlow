@@ -78,8 +78,8 @@ export function renderAboutView(container, navigateTo) {
       <!-- EQUIPE DO PROJETO -->
       <section class="team-section">
         <div class="section-header" style="text-align: center; margin-bottom: 32px;">
-          <h2 style="font-size: 1.8rem; font-weight: 800; color: #1E293B;">Equipe de Desenvolvimento</h2>
-          <p style="color: #64748B; font-size: 1rem;">Estudantes responsáveis pela concepção, UX/UI e arquitetura do MarmitaFlow</p>
+          <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">Equipe de Desenvolvimento</h2>
+          <p style="color: var(--text-muted); font-size: 1rem;">Estudantes responsáveis pela concepção, UX/UI e arquitetura do MarmitaFlow</p>
         </div>
 
         <div class="team-grid">

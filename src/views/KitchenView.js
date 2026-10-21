@@ -23,7 +23,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
       <div class="kds-header">
         <div class="kds-title-group">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-            <button class="btn-secondary" id="btn-back-from-kds" style="background: #151D2F; color: #CBD5E1; border-color: #2A364F; padding: 6px 14px; font-size: 0.82rem;">
+            <button class="btn-secondary" id="btn-back-from-kds" style="background: var(--bg-surface); color: var(--text-secondary); border-color: var(--border-color); padding: 6px 14px; font-size: 0.82rem;">
               ← Voltar ao Painel
             </button>
             <h1>Cozinha · ${restaurant.name}</h1>
@@ -33,18 +33,18 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
 
         <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
           <div class="kds-stats-strip">
-            <span class="kds-stat-pill" style="border-color: #F97316; color: #FB923C;">
+            <span class="kds-stat-pill" style="border-color: #F97316; color: var(--status-received);">
               ⚡ Pendentes: ${colRecebidos.length}
             </span>
-            <span class="kds-stat-pill" style="border-color: #3B82F6; color: #60A5FA;">
+            <span class="kds-stat-pill" style="border-color: #3B82F6; color: var(--status-info);">
               🍳 Preparando: ${colPreparo.length}
             </span>
-            <span class="kds-stat-pill" style="border-color: #10B981; color: #34D399;">
+            <span class="kds-stat-pill" style="border-color: var(--status-ready); color: var(--status-ready);">
               ✓ Prontos: ${colProntos.length}
             </span>
           </div>
 
-          <button class="btn-secondary" id="btn-sound-test" style="background: #151D2F; color: #CBD5E1; border-color: #2A364F;">
+          <button class="btn-secondary" id="btn-sound-test" style="background: var(--bg-surface); color: var(--text-secondary); border-color: var(--border-color);">
             🔔 Testar Sinal Sonoro
           </button>
         </div>
@@ -64,7 +64,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
 
           <div class="kds-orders-list">
             ${colRecebidos.length === 0 ? `
-              <div style="text-align: center; padding: 48px 12px; color: #64748B;">
+              <div style="text-align: center; padding: 48px 12px; color: var(--text-muted);">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">⏳</div>
                 <div>Aguardando novos pedidos...</div>
                 <div style="font-size: 0.75rem; margin-top: 4px;">Faça um pedido no cardápio de ${restaurant.name} para vê-lo chegar aqui!</div>
@@ -84,7 +84,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
 
           <div class="kds-orders-list">
             ${colPreparo.length === 0 ? `
-              <div style="text-align: center; padding: 48px 12px; color: #64748B;">
+              <div style="text-align: center; padding: 48px 12px; color: var(--text-muted);">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">🍳</div>
                 <div>Nenhuma marmita sendo montada no momento.</div>
               </div>
@@ -103,7 +103,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
 
           <div class="kds-orders-list">
             ${colProntos.length === 0 ? `
-              <div style="text-align: center; padding: 48px 12px; color: #64748B;">
+              <div style="text-align: center; padding: 48px 12px; color: var(--text-muted);">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">🛵</div>
                 <div>Nenhum pedido aguardando saída.</div>
               </div>
@@ -114,7 +114,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
       </div>
 
       <!-- Rodapé -->
-      <div style="margin-top: 24px; padding: 14px 20px; background: #151D2F; border: 1px solid #222F49; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; color: #94A3B8;">
+      <div style="margin-top: 24px; padding: 14px 20px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; color: var(--text-muted);">
         <span>🏁 Pedidos entregues com sucesso hoje: <strong>${colEntregues.length}</strong></span>
       </div>
 
@@ -133,7 +133,7 @@ function renderOrderTicketHtml(order, currentStatus) {
       <div class="ticket-header">
         <div>
           <span class="ticket-number">#${order.orderNumber}</span>
-          <span style="font-size: 0.75rem; color: #10B981; font-weight: 700; margin-left: 6px;">
+          <span style="font-size: 0.75rem; color: var(--status-ready); font-weight: 700; margin-left: 6px;">
             ${order.paymentMethod} ✓
           </span>
         </div>
@@ -166,7 +166,7 @@ function renderOrderTicketHtml(order, currentStatus) {
                 <div class="ticket-item-specs">🥗 <strong>Guarnições:</strong> ${item.sides.join(', ')}</div>
               ` : ''}
               ${item.addons && item.addons.length > 0 ? `
-                <div class="ticket-item-specs" style="color: #60A5FA;">✨ <strong>Adicionais:</strong> ${item.addons.join(', ')}</div>
+                <div class="ticket-item-specs" style="color: var(--status-info);">✨ <strong>Adicionais:</strong> ${item.addons.join(', ')}</div>
               ` : ''}
               ${item.notes ? `
                 <div class="ticket-item-notes">
@@ -183,7 +183,7 @@ function renderOrderTicketHtml(order, currentStatus) {
                   data-item-idx="${idx}" 
                   ${isChecked ? 'checked' : ''} 
                 />
-                <span style="${isChecked ? 'text-decoration: line-through; color: #4ADE80;' : ''}">
+                <span style="${isChecked ? 'text-decoration: line-through; color: var(--status-ready);' : ''}">
                   ${isChecked ? '✓ Conferido na embalagem' : 'Conferir item na marmita'}
                 </span>
               </label>

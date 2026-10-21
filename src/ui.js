@@ -14,7 +14,7 @@ export function applyRestaurantTheme(container, restaurant, color = restaurant.p
   container.style.setProperty('--color-primary-dark', primary);
   container.style.setProperty('--color-primary-hover', primary);
   container.style.setProperty('--color-accent', primary);
-  container.style.setProperty('--color-primary-light', `color-mix(in srgb, ${primary} 10%, white)`);
+  container.style.setProperty('--color-primary-light', `color-mix(in srgb, ${primary} 18%, var(--bg-surface))`);
   container.style.setProperty('--color-secondary', restaurant.secondaryColor || '#047857');
 }
 

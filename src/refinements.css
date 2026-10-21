@@ -1,6 +1,7 @@
 /* Shared editorial identity: Literata for titles, Jakarta for work and controls.
    App frame: 1200px = 24px + 1152px content + 24px; four equal metrics, 16px gutters. */
 :root {
+  color-scheme: light;
   --bg-page: #fafafa;
   --bg-surface: #f2f2f2;
   --bg-subtle: #f7f7f7;
@@ -8,6 +9,10 @@
   --text-secondary: #414141;
   --text-muted: #626262;
   --border-color: #dedede;
+  --status-received: #9a4318;
+  --status-preparing: #8b650c;
+  --status-ready: #176d42;
+  --status-info: #245dad;
   --font-main: var(--font-sans);
   --shadow-sm: none;
   --shadow-md: none;
@@ -79,6 +84,52 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .footer-wordmark { font-family: var(--font-heading); font-weight: 500; letter-spacing: -.05em; }
 .platform-stage-wrapper .split-footer-section p { color: inherit; }
 
+/* Follow the device preference on every route, including open dialogs. */
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg-page: #262626;
+    --bg-surface: #333333;
+    --bg-elevated: #3b3b3b;
+    --bg-subtle: #2e2e2e;
+    --text-main: #f5f5f5;
+    --text-secondary: #dedede;
+    --text-muted: #bdbdbd;
+    --border-color: #525252;
+    --border-subtle: #454545;
+    --border-focus: #dedede;
+    --color-primary-light: color-mix(in srgb, var(--color-primary) 18%, var(--bg-surface));
+    --color-secondary-light: #1c3c30;
+    --color-secondary-hover: #9ce4c1;
+    --color-danger: #ff9696;
+    --color-danger-light: #482b2b;
+    --color-warning: #efc46b;
+    --status-received: #ffc29f;
+    --status-preparing: #f1d991;
+    --status-ready: #b7dfbf;
+    --status-info: #96c3ff;
+  }
+  body :is(.app-header, .sheet-paper, .live-kds-sheet, .stage-preview-column, .auth-card, .custom-color-button, .restaurant-share-panel, .metric-card, .owner-card-panel, .table-tent-preview-card, .tech-stack-card, .dish-card, .search-box-wrap, .modal-content-card, .modal-dialog, .modal-header-bar, .modal-header, .cust-option-item, .cart-qty-controls, .form-input, .form-select, .form-textarea, .pix-code-input) {
+    background: var(--bg-surface);
+  }
+  body :is(.modal-footer-bar, .modal-footer, .cust-step-box, .cart-item-card, .coupon-box, .cart-summary-box, .pix-container-box, .qty-btn) {
+    background: var(--bg-subtle);
+  }
+  body :is(input, textarea, select, .qty-btn) { color: var(--text-main); }
+  body :is(input, textarea)::placeholder { color: var(--text-muted); opacity: 1; }
+  body :is(.cust-option-item:hover, .cust-option-item.selected) { background: var(--color-primary-light); }
+  body .order-type-btn.active { background: var(--bg-elevated); }
+  body .dish-card:hover { border-color: var(--text-muted); }
+  body .btn-dish-unavailable { background: var(--bg-elevated); color: var(--text-muted); }
+  body .summary-line.discount { color: #86d9ad; }
+  body :is(.kds-pix-status, .pix-confirm-status, .status-badge-inline.open) { color: var(--status-ready); }
+  body .status-badge-inline.closed { color: var(--color-danger); }
+  body :is(.segment-btn:hover, .stage-nav-item:hover, .format-toggle-btns) { background: var(--bg-elevated); }
+  body .login-error-alert { background: var(--color-danger-light); color: var(--color-danger); border-color: var(--color-danger); }
+  body .skip-link { background: var(--bg-elevated); color: var(--text-main); }
+  body .kds-sheet-divider { background: var(--border-color); }
+  body :is(.pix-confirm-header, .ticket-header-strip, .ticket-footer-strip) { border-color: var(--border-color); }
+}
 /* Public menu: a readable restaurant masthead and food-first catalog. */
 .restaurant-site-wrapper { background: var(--bg-page); }
 body[data-page="cardapio"] .restaurant-site-wrapper { border-top: 5px solid var(--color-primary); }
@@ -224,19 +275,19 @@ body[data-page="admin"] { background: var(--bg-surface); }
 .table-tent-url { overflow-wrap: anywhere; }
 
 /* The kitchen has three actual stages, so all three use the available width. */
-.kds-container { background: #202020; padding: 32px; }
+.kds-container { background: var(--bg-page); color: var(--text-main); padding: 32px; }
 .kds-header { align-items: flex-start; gap: 24px; flex-wrap: wrap; }
 .kds-title-group h1 { font-family: var(--font-heading); font-weight: 500; font-size: 26px; line-height: 1.3; }
-.kds-title-group p { color: #c3cbc0; font-size: 13px; margin-top: 12px; }
+.kds-title-group p { color: var(--text-secondary); font-size: 13px; margin-top: 12px; }
 .kds-stats-strip { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; }
 .kds-columns-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.kds-column { background: #2b2b2b; border-color: #454545; min-height: 420px; border-radius: 6px; }
-.kds-col-header { background: transparent; border-bottom: 1px solid #454545; font-family: var(--font-sans); font-size: 13px; font-weight: 500; min-height: 58px; }
-.col-recebido { color: #ffc29f; }
-.col-preparo { color: #f1d991; }
-.col-pronto { color: #b7dfbf; }
-.kds-order-ticket { background: var(--bg-page); box-shadow: none; border-radius: 4px; }
-.kds-orders-list > div[style] { color: #c0c9bb !important; font-size: 13px; }
+.kds-column { background: var(--bg-surface); border-color: var(--border-color); min-height: 420px; border-radius: 6px; }
+.kds-col-header { background: transparent; border-bottom: 1px solid var(--border-color); font-family: var(--font-sans); font-size: 13px; font-weight: 500; min-height: 58px; }
+.col-recebido { color: var(--status-received); }
+.col-preparo { color: var(--status-preparing); }
+.col-pronto { color: var(--status-ready); }
+.kds-order-ticket { background: var(--bg-page); color: var(--text-main); box-shadow: none; border-radius: 4px; }
+.kds-orders-list > div[style] { font-size: 13px; }
 .ticket-number { font-family: var(--font-sans); font-size: 20px; font-variant-numeric: tabular-nums; color: var(--text-main); }
 .ticket-customer-name { font-size: 14px; }
 .ticket-items-box { background: var(--bg-surface); }
@@ -250,7 +301,7 @@ body[data-page="admin"] { background: var(--bg-surface); }
 .about-title { font-size: clamp(36px, 4.8vw, 56px); font-weight: 500; letter-spacing: -.04em; }
 .about-subtitle { font-size: 16px; line-height: 1.9; max-width: 64ch; margin-top: 24px; }
 .about-pillars-grid { gap: 0 48px; }
-.pillar-card { padding: 28px 0; border: 0; border-top: 1px solid var(--border-color); border-radius: 0; box-shadow: none; }
+.pillar-card { background: transparent; padding: 28px 0; border: 0; border-top: 1px solid var(--border-color); border-radius: 0; box-shadow: none; }
 .pillar-card:hover, .team-card:hover { transform: none; box-shadow: none; }
 .pillar-icon { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
 .pillar-card h3 { font-size: 23px; font-weight: 500; }
