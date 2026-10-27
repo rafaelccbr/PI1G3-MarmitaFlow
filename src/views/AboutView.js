@@ -79,32 +79,28 @@ export function renderAboutView(container, navigateTo) {
       <section class="team-section">
         <div class="section-header" style="text-align: center; margin-bottom: 32px;">
           <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">Equipe de Desenvolvimento</h2>
-          <p style="color: var(--text-muted); font-size: 1rem;">Estudantes responsáveis pela concepção, UX/UI e arquitetura do MarmitaFlow</p>
+          <p style="color: var(--text-muted); font-size: 1rem;">Estudantes responsáveis pelo desenvolvimento do MarmitaFlow</p>
         </div>
 
         <div class="team-grid">
           <div class="team-card">
             <div class="team-avatar">VS</div>
             <h4>Vinícius Spejo da Silva</h4>
-            <span class="team-role">Desenvolvimento & Produto</span>
           </div>
 
           <div class="team-card featured">
             <div class="team-avatar highlight">RM</div>
             <h4>Rafael Miquelin</h4>
-            <span class="team-role">Arquitetura de Software & Full Stack</span>
           </div>
 
           <div class="team-card">
             <div class="team-avatar">MN</div>
             <h4>Matheus Nery</h4>
-            <span class="team-role">UX/UI & Design System</span>
           </div>
 
           <div class="team-card">
             <div class="team-avatar">JS</div>
             <h4>João Vitor dos Santos</h4>
-            <span class="team-role">Qualidade & Regras de Negócio</span>
           </div>
         </div>
       </section>
