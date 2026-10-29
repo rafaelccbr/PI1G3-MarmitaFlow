@@ -1,224 +1,87 @@
-# 🍱 MarmitaFlow - O Cardápio Digital Inteligente & Plataforma SaaS Multi-Tenant
+﻿# MarmitaFlow
 
-> **"O cardápio digital que conecta pedido, estoque, pagamento e cozinha em tempo real."**  
-> *Projeto Acadêmico Integrador • Experiência de Delivery Real • Zero Rasuras • 100% Personalizável*
+Cardápio digital que conecta pedido, disponibilidade dos pratos e cozinha.
+Projeto acadêmico integrador de Vinícius Spejo da Silva, Rafael Miquelin, Matheus Nery e João Vitor dos Santos.
 
-Esta versão é uma demonstração local: restaurantes, contas e pedidos ficam no `localStorage` do navegador. Pix e cartão têm confirmação simulada, sem cobrança ou integração bancária. Abas da mesma origem sincronizam os pedidos e o preparo.
+## Persistência e pagamentos
 
-O endereço `#/cardapio/:slug` abre a página do cliente diretamente, sem navegação da plataforma, cadastro ou controles de visualização. A marca e a cor salvas no painel são aplicadas ao cardápio. O dono pode abrir essa página em outra aba e copiar seu link pelo painel; o QR Code usa o mesmo endereço. Para compartilhar novos restaurantes e receber pedidos entre dispositivos, é necessário implementar persistência compartilhada no servidor e publicar a aplicação.
+Restaurantes, credenciais, cardápios e pedidos são persistidos no Cloudflare D1. Um Worker atende a API no mesmo endereço do site. Cada proprietário acessa apenas a gestão e os pedidos do próprio restaurante; clientes acompanham os pedidos associados ao seu navegador por um cookie protegido. As telas consultam atualizações a cada 8 segundos quando a aba está visível.
 
-Para validar as regras de carrinho e cadastro, execute `npm test`. Para gerar a versão de produção, execute `npm run build`. No PowerShell com scripts bloqueados, use `npm.cmd`.
+Pix e cartão continuam **simulados**: não há cobrança, confirmação bancária ou integração com operadora. O servidor calcula os preços, adicionais, cupom e entrega e revalida o cardápio antes de gravar o pedido. A expedição exige a conferência de todos os itens.
 
----
+A sacola permanece no `localStorage`. Dados da antiga demonstração local não são enviados automaticamente para o D1: o banco começa com o catálogo inicial e recebe os novos cadastros pela API. Senhas de contas novas são gravadas com hash PBKDF2 e salt; sessões usam cookies HttpOnly, SameSite e Secure em HTTPS. Os cookies de sessão duram 7 dias; o de acompanhamento do cliente, 30 dias. O pagamento usa uma identificação de tentativa para evitar pedidos duplicados em reenvios.
 
-## 👥 Integrantes do Projeto
-- **Vinícius Spejo da Silva**
-- **Rafael Miquelin**
-- **Matheus Nery**
-- **João Vitor dos Santos**
+## Executar localmente
 
----
+Use a versão de Node indicada em `.node-version`.
 
-## 📌 1. Visão Geral e Motivação
-
-O setor gastronômico de marmitarias e restaurantes populares enfrenta desafios diários com o uso de materiais analógicos:
-1. **Cardápios Impressos Rasurados:** A oscilação diária no preço de insumos e no estoque faz com que donos risquem e alterem preços à caneta nos menus físicos, gerando poluição visual e má impressão.
-2. **Erros no Atendimento:** Pedidos recebidos via áudios de WhatsApp geram anotações truncadas e esquecimento de acompanhamentos.
-3. **Comandas Extraviadas na Cozinha:** Papéis molhados ou perdidos atrasam a produção e confundem a equipe do fogão.
-4. **Taxas Abusivas de Marketplaces:** Grandes aplicativos de delivery chegam a cobrar de 12% a 27% sobre cada pedido.
-
-### 💡 A Solução MarmitaFlow
-O **MarmitaFlow** nasceu para revolucionar essa operação:
-- **Plataforma SaaS Multi-Tenant:** Qualquer empreendedor pode abrir seu restaurante independente, definir sua identidade visual (nome, cores, logo, taxa de entrega) e publicar seu cardápio em minutos.
-- **Restaurante "Marmita Flow" Oficial:** Opera de forma independente dentro da plataforma como modelo de boas práticas.
-- **Pix Direto ao Dono:** Pagamento instantâneo via QR Code e Copia-e-Cola direto na chave Pix do proprietário, sem intermediários.
-- **Cozinha Inteligente (KDS):** Comanda digital em Kanban (*Novos ➔ Em Preparo ➔ Pronto ➔ Entregue*) com checklist interativo para conferência de itens e aviso sonoro na chegada de pedidos.
-- **Controle de Estoque ao Vivo:** Botão de pausa com 1 clique para itens esgotados, evitando cancelamentos de pedidos.
-
----
-
-## 🚀 2. Arquitetura e Fluxo do Sistema
-
-```mermaid
-graph TD
-    A["🌐 Plataforma MarmitaFlow<br/>(#/plataforma)"] --> B["🍱 Cardápio do Cliente<br/>(#/cardapio/:slug)"]
-    A --> C["✨ Cadastro de Restaurante<br/>(#/criar-restaurante)"]
-    A --> D["🔐 Login do Dono<br/>(#/admin-login)"]
-    
-    B --> B1["🛠️ Montagem Guiada da Marmita<br/>(Tamanho, Proteína, Base, Guarnições)"]
-    B1 --> B2["🧺 Sacola com Cupom<br/>(Entrega vs Retirada)"]
-    B2 --> B3["⚡ Checkout Pix / Cartão<br/>(QR Code Dinâmico + Confetes)"]
-    B3 --> E["👨‍🍳 Cozinha KDS ao Vivo<br/>(#/cozinha/:slug)"]
-    
-    D --> F["⚙️ Painel do Proprietário<br/>(#/admin)"]
-    F --> F1["🎨 Marca & Cores"]
-    F --> F2["🍱 Gestão de Cardápio"]
-    F --> F3["📦 Estoque em Tempo Real"]
-    F --> F4["🖨️ Display de Mesa QR Code"]
+```powershell
+npm.cmd ci
+npm.cmd run db:migrate:local
+npm.cmd run dev -- --host 0.0.0.0
 ```
 
----
+Abra `http://localhost:5173/`. O emulador usa um D1 **local**, separado do banco publicado. Para testar em outro dispositivo na mesma rede, use o endereço de rede mostrado pelo Vite e mantenha o servidor ativo. Caso o Windows solicite acesso à rede, permita para a rede privada usada no teste.
 
-## 🍽️ 3. Principais Módulos do Sistema
+## Contas de demonstração
 
-### 🍱 Cardápio Online do Cliente (`#/cardapio/:slug`)
-- **Storefront Completo:** Banner de capa apetitoso, mascote/logo, nota de avaliações, tempo estimado e status (*Aberto Agora*).
-- **Busca em Tempo Real & Filtros:** Busca instantânea por pratos e categorias (*Tradicionais*, *Fit & Equilíbrio*, *Gourmet*, *Personalizável*, *Bebidas*, *Sobremesas*).
-- **Montagem Guiada da Marmita:**
-  1. *Tamanho:* P (400g), M (600g), G (800g);
-  2. *Proteína Principal:* Frango grelhado, carne de panela, salmão, bisteca suína, etc.;
-  3. *Base:* Arroz branco soltinho, integral com sementes, arroz com brócolis;
-  4. *Feijão:* Feijão preto temperado, carioca cremoso ou sem feijão;
-  5. *Guarnições:* Até 2 opções inclusas (farofa, legumes, couve no alho, batata rústica, purê);
-  6. *Adicionais:* Ovo frito gema mole, torresmo pururuca, vinagrete artesanal;
-  7. *Observações para a cozinha.*
-- **Sacola de Pedidos:** Alternador entre Entrega e Retirada no balcão, cupom promocional (`MARMITA10` = 10% OFF).
-- **Checkout com Pix Instantâneo:** Geração de QR Code via biblioteca `qrcode`, código copia-e-cola, celebração com chuva de confetes (`canvas-confetti`) e som de sucesso.
-- **Rastreador de Pedido em Tempo Real:** Acompanhamento ao vivo do preparo da refeição.
-- **Página Pública Responsiva:** O cliente acessa diretamente o restaurante, com cor própria, pratos, busca, categorias e sacola; o layout se adapta ao celular e ao desktop.
+| Restaurante | E-mail | Senha |
+| --- | --- | --- |
+| Marmita Flow | admin@marmitaflow.com | 123456 |
+| Cantina da Nona | nona@cantina.com | 123456 |
 
-### ⚙️ Painel Administrativo Protegido do Dono (`#/admin`)
-- **Autenticação Segura (Auth Guard):** Acesso exclusivo para o proprietário logado.
-- **Dashboard de Métricas:** Faturamento total, pedidos recebidos, quantidade de pratos e status da loja.
-- **Minha Marca & Configurações:** Customização de nome, slogan, paleta de cores primárias, chave Pix, WhatsApp e taxa de entrega.
-- **Gerenciador de Cardápio:** CRUD completo de pratos e categorias.
-- **Estoque em Tempo Real:** Botão com 1 clique para marcar pratos como esgotados na cozinha.
-- **Display de Mesa para Salão:** Geração de display com QR Code imprimível para fixar nas mesas do restaurante.
+Essas duas contas são públicas e demonstrativas. Para dados próprios, cadastre um restaurante com credenciais próprias. A cozinha exige login do proprietário correspondente.
 
-### 👨‍🍳 Cozinha KDS (`#/cozinha/:slug`)
-- Tela de expedição industrial em colunas Kanban: *Recebidos ➔ Em Preparo ➔ Prontos ➔ Entregues*.
-- Checklist interativo item a item para evitar erros de expedição.
-- Sinal sonoro via Web Audio API na chegada de novos pedidos.
+## Rotas
 
-### 🎓 Sobre o Projeto (`#/sobre`)
-- Apresentação acadêmica, desafios solucionados e créditos da equipe desenvolvedora.
+| Endereço | Função |
+| --- | --- |
+| `#/plataforma` | Apresentação e restaurantes |
+| `#/cardapio/:slug` | Cardápio público, montagem, sacola e acompanhamento |
+| `#/criar-restaurante` | Cadastro persistido no D1 |
+| `#/admin-login` | Login do proprietário |
+| `#/admin` | Marca, cardápio, disponibilidade e QR Code |
+| `#/cozinha/:slug` | Comandas, status e checklist |
+| `#/sobre` | Projeto e equipe |
 
----
+A API usa `/api/state`, `/api/auth/login`, `/api/auth/logout`, `/api/restaurants`, `/api/products` e `/api/orders`. Dados de clientes e credenciais não são incluídos no catálogo público. Alterações exigem sessão e autorização do restaurante no servidor. Solicitações de origens diferentes são recusadas.
 
-## 🔑 4. Contas de Demonstração (Acesso Rápido)
+## Verificação
 
-Para testar o acesso administrativo imediatamente na tela `#/admin-login`:
-
-| Restaurante | E-mail de Acesso | Senha | Perfil |
-| :--- | :--- | :--- | :--- |
-| **Marmita Flow (Oficial)** | `admin@marmitaflow.com` | `123456` | Administrador Principal |
-| **Cantina da Nona** | `nona@cantina.com` | `123456` | Restaurante Parceiro |
-
----
-
-## 💻 5. Tecnologias Utilizadas
-
-- **Core:** JavaScript Moderno (ES6+), HTML5 Semântico.
-- **Estilização:** Vanilla CSS Moderno Modular com Design Tokens (HSL, Glassmorphism, Micro-animações).
-- **Build & Dev Server:** [Vite](https://vitejs.dev/) com Hot Module Replacement (HMR).
-- **Tipografia:** Google Fonts (*Literata* nos títulos e *Plus Jakarta Sans* nos controles e textos).
-- **Geração de QR Code:** `qrcode` (renderização dinâmica em Canvas).
-- **Micro-interações:** `canvas-confetti` (celebração de pagamento).
-- **Efeitos Sonoros:** Web Audio API nativa (chime de cozinha e confirmação de Pix sem arquivos pesados de áudio).
-- **Persistência de Estado:** Store Multi-Tenant Reativa com LocalStorage resiliente.
-- **CI/CD & Deploy:** GitHub Actions + GitHub Pages.
-
----
-
-## 📁 6. Estrutura do Repositório
-
-```text
-projeto-marmita-flow/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # Pipeline de Deploy Automático no GitHub Pages
-├── public/
-│   └── assets/                 # Imagens em alta resolução dos pratos e marcas
-├── src/
-│   ├── views/
-│   │   ├── PlatformHome.js     # Portal Inicial SaaS Multi-Tenant
-│   │   ├── RestaurantMenu.js   # Cardápio Público do Restaurante (Mobile/Desktop)
-│   │   ├── AdminDashboard.js   # Painel Administrativo Protegido do Dono
-│   │   ├── AdminLogin.js       # Tela de Login do Dono com Atalhos Demo
-│   │   ├── CreateRestaurant.js # Cadastro de Novo Restaurante Independente
-│   │   ├── KitchenView.js      # Cozinha Inteligente (KDS)
-│   │   └── AboutView.js        # Página Institucional e Equipe Acadêmica
-│   ├── audio.js                # Síntese de áudio via Web Audio API
-│   ├── main.js                 # Roteador Hash SPA (#/rota) e Casca Global
-│   ├── store.js                # State Store Multi-Tenant com Persistência
-│   └── style.css               # Design System completo e responsivo
-├── index.html                  # Ponto de entrada HTML5
-├── vite.config.js              # Configuração Vite com caminhos relativos
-├── package.json                # Dependências e scripts npm
-└── README.md                   # Documentação completa do projeto
+```powershell
+npm.cmd test
+npm.cmd run build
+npm.cmd run check:api
 ```
 
----
+`npm test` inclui testes da API com SQLite, isolamento entre contas, login/logout, preços calculados no servidor, estoque, idempotência e checklist. `check:api` testa o Worker em execução em `http://127.0.0.1:5173`, criando um pedido de demonstração e concluindo-o; use apenas em ambiente de teste. A URL pode ser alterada com `MARMITAFLOW_URL`.
 
-## 🛠️ 7. Como Executar Localmente
+O build gera `dist/client` para o navegador e `dist/marmitaflow` para o Worker. O Wrangler usa a configuração gerada pelo plugin do Vite para publicar ambos.
 
-### Pré-requisitos
-- Node.js (versão 18 ou superior)
-- Gerenciador de pacotes `npm`
+## Publicar na Cloudflare
 
-### Passo a Passo
-```bash
-# 1. Clone o repositório
-git clone https://github.com/rafaelccbr/Projeto-integrador1.git
+O banco `marmitaflow-db` está associado ao binding `DB` em `wrangler.toml`. O ID de banco não é uma credencial. Login e tokens da Cloudflare ficam na configuração local da ferramenta, fora do código.
 
-# 2. Acesse a pasta do projeto
-cd Projeto-integrador1
-
-# 3. Instale as dependências
-npm install
-
-# 4. Inicie o servidor de desenvolvimento
-npm run dev
+```powershell
+npx.cmd wrangler login
+npm.cmd run db:migrate:remote
+npm.cmd run deploy
 ```
 
-Abra seu navegador em: **[http://localhost:5173/](http://localhost:5173/)**
+As migrations em `migrations/` criam as tabelas e o catálogo inicial uma única vez. Não edite uma migration já aplicada: crie a próxima para mudanças no banco. `scripts/generate-seed.mjs` foi usado para gerar os dados iniciais; não é necessário executá-lo no uso normal.
 
-Para gerar os arquivos estáticos de produção:
-```bash
-npm run build
-```
+O fluxo GitHub Actions valida testes e build. Para publicação automática, configure os secrets `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no repositório ou no ambiente `production`. O token precisa das permissões de publicação de Workers e edição de D1 para a conta do projeto. Sem os secrets, a publicação é pulada com um aviso; a validação continua.
 
----
+GitHub Pages sozinho não executa a API e não pode hospedar esta versão completa. Publique o Worker com seus assets pela Cloudflare.
 
-## ⚡ 8. Como Hospedar no Cloudflare Pages (Recomendado)
+## Estrutura
 
-O **Cloudflare Pages** é a melhor opção para este projeto: é **100% gratuito**, oferece CDN global ultrarrápida, SSL automático e suporta repositórios **privados** sem nenhuma cobrança.
+- `server/`: API, validação, preços, autenticação e acesso ao D1.
+- `migrations/`: estrutura SQL e catálogo de demonstração.
+- `src/data/catalog.js`: catálogo inicial e opções de montagem compartilhadas.
+- `src/store.js` e `src/api.js`: estado da interface e comunicação com o servidor.
+- `src/views/`: telas do cliente, proprietário e cozinha.
+- `tests/`: regras do carrinho e testes da API.
+- `public/assets/`: imagens do projeto.
 
-### Passo a Passo no Cloudflare:
-1. Acesse o painel da Cloudflare: **[dash.cloudflare.com](https://dash.cloudflare.com/)**
-2. No menu lateral, clique em **Workers e Pages** ➔ **Criar** ➔ selecione a aba **Pages**.
-3. Clique em **Conectar ao Git** e selecione sua conta do GitHub (`rafaelccbr`).
-4. Escolha o repositório **`Projeto-integrador1`**.
-5. Na tela de configuração de build:
-   - **Nome do projeto:** `marmitaflow` (ou `projeto-integrador1`)
-   - **Branch de produção:** `main`
-   - **Predefinição de framework:** `Vite`
-   - **Comando de compilação (Build command):** `npm run build`
-   - **Diretório de saída da compilação (Build output directory):** `dist`
-   - **Diretório raiz (Root directory):** `/` *(deixar vazio ou padrão)*
-6. Clique em **Salvar e Implantar** (*Save and Deploy*).
-
-Em menos de 1 minuto, a Cloudflare compila e gera uma URL instantânea no formato:  
-👉 `https://marmitaflow.pages.dev` (com atualizações automáticas a cada `git push`!).
-
----
-
-## 🌐 9. Como Hospedar no GitHub Pages (Alternativa)
-
-O projeto também conta com o pipeline de **GitHub Actions** configurado em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
-
-### Passos no GitHub:
-1. Acesse o seu repositório no GitHub: `https://github.com/rafaelccbr/Projeto-integrador1`
-2. Vá em **Settings** (Configurações) ➔ **Pages** (no menu lateral esquerdo).
-3. Na seção **Build and deployment**:
-   - Em **Source**, selecione **GitHub Actions**.
-4. Faça qualquer push na branch `main` (ou clique na aba **Actions** e execute o workflow manualmente).
-5. O site será compilado e publicado automaticamente com URL no formato:
-   `https://rafaelccbr.github.io/Projeto-integrador1/`
-
-*(Nota: no GitHub Pages gratuito, o repositório precisa estar como Público).*
-
----
-
-## 📄 Licença
-Este projeto foi desenvolvido para fins acadêmicos e integradores na faculdade. Todos os direitos reservados à equipe de desenvolvimento.
+Desenvolvido para fins acadêmicos. Todos os direitos reservados à equipe.

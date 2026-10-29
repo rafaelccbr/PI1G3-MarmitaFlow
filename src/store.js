@@ -29,220 +29,27 @@ const safeStorage = {
   }
 };
 
-// Restaurante conceito independente oficial: Marmita Flow
-export const INITIAL_RESTAURANTS = [
-  {
-    id: 'rest-marmita-flow',
-    slug: 'marmita-flow',
-    name: 'Marmita Flow',
-    tagline: 'Comida caseira no capricho, quentinha e sem rasuras',
-    description: 'Especialista em marmitas completas, ingredientes frescos do dia e opções saudáveis balanceadas.',
-    primaryColor: '#FF6B00',
-    secondaryColor: '#10B981',
-    logoUrl: '/assets/mascote_flow.jpg',
-    bannerUrl: '/assets/feijoada_flow.jpg',
-    pixKey: 'financeiro@marmitaflow.com.br',
-    pixKeyType: 'E-mail',
-    phone: '(11) 98765-4321',
-    address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
-    deliveryFee: 3.00,
-    deliveryTime: '30-45 min',
-    rating: '4.9 (184 avaliações)',
-    isOpen: true,
-    adminEmail: 'admin@marmitaflow.com',
-    adminPass: '123456',
-    ownerName: 'Rafael Miquelin'
-  },
-  {
-    id: 'rest-cantina-nona',
-    slug: 'cantina-da-nona',
-    name: 'Cantina da Nona',
-    tagline: 'O verdadeiro sabor da comida caseira da vó',
-    description: 'Receitas tradicionais italianas e brasileiras, molho artesanal e carnes assadas na brasa.',
-    primaryColor: '#DC2626',
-    secondaryColor: '#16A34A',
-    logoUrl: '/assets/marmita_custom.jpg',
-    bannerUrl: '/assets/marmita_custom.jpg',
-    pixKey: 'contato@cantinadanona.com.br',
-    pixKeyType: 'E-mail',
-    phone: '(11) 97711-2233',
-    address: 'Rua dos Pinheiros, 450 - Pinheiros, São Paulo - SP',
-    deliveryFee: 4.50,
-    deliveryTime: '40-55 min',
-    rating: '4.8 (92 avaliações)',
-    isOpen: true,
-    adminEmail: 'nona@cantina.com',
-    adminPass: '123456',
-    ownerName: 'Dona Carmela'
-  }
-];
-
-// Pratos associados aos seus respectivos restaurantes independentes
-export const INITIAL_PRODUCTS = [
-  // --- Pratos do Marmita Flow ---
-  {
-    id: 'prod-mf-feijoada',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Feijoada Flow Completa',
-    category: 'Marmitas Tradicionais',
-    price: 29.90,
-    description: 'Feijoada completa com arroz soltinho, feijão preto encorpado, couve refogada no alho, farofa crocante de milho com bacon, fatias de laranja e torresmo pururuca.',
-    image: '/assets/feijoada_flow.jpg',
-    badge: 'Mais Vendido 🔥',
-    isCustomizable: true,
-    available: true,
-    suggestedAlternativeId: 'prod-mf-frango'
-  },
-  {
-    id: 'prod-mf-frango',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Frango Grelhado com Legumes',
-    category: 'Linha Fit & Equilíbrio',
-    price: 27.90,
-    description: 'Filé de peito de frango grelhado marinado com ervas finas, arroz integral com sementes, feijão preto, legumes salteados no azeite e saladinha fresca.',
-    image: '/assets/frango_grelhado.jpg',
-    badge: 'Fit Saudável 🥗',
-    isCustomizable: true,
-    available: true,
-    suggestedAlternativeId: 'prod-mf-feijoada'
-  },
-  {
-    id: 'prod-mf-salmao',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Salmão Orange Gourmet',
-    category: 'Marmitas Gourmet',
-    price: 32.90,
-    description: 'Filé de salmão grelhado regado com redução cítrica de laranja e ervas frescas, arroz com brócolis aromático e cenouras baby salteadas na manteiga de ervas.',
-    image: '/assets/salmao_orange.jpg',
-    badge: 'Chef Especial 🌟',
-    isCustomizable: true,
-    available: true,
-    suggestedAlternativeId: 'prod-mf-frango'
-  },
-  {
-    id: 'prod-mf-custom',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Monte Sua Marmita Artesanal',
-    category: 'Personalizável',
-    price: 26.90,
-    description: 'Crie sua refeição perfeita: escolha o tamanho, 1 proteína nobre, 1 base, 1 tipo de feijão, 2 acompanhamentos frescos e adicionais ao seu gosto.',
-    image: '/assets/marmita_custom.jpg',
-    badge: '100% Você 🎯',
-    isCustomizable: true,
-    available: true,
-    suggestedAlternativeId: 'prod-mf-feijoada'
-  },
-  {
-    id: 'prod-mf-suco-laranja',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Suco de Laranja Natural 500ml',
-    category: 'Bebidas',
-    price: 8.00,
-    description: '100% fruta espremida na hora com gelo e fatia de laranja, super refrescante e sem conservantes.',
-    image: '/assets/suco_laranja.jpg',
-    badge: 'Natural 🍊',
-    isCustomizable: false,
-    available: true
-  },
-  {
-    id: 'prod-mf-refrigerante',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Refrigerante em Lata 350ml',
-    category: 'Bebidas',
-    price: 6.00,
-    description: 'Gelado na temperatura perfeita (Guaraná, Coca-Cola ou Soda).',
-    image: '/assets/refrigerante.jpg',
-    badge: 'Gelado 🧊',
-    isCustomizable: false,
-    available: true
-  },
-  {
-    id: 'prod-mf-brownie',
-    restaurantId: 'rest-marmita-flow',
-    name: 'Brownie Artesanal com Nozes',
-    category: 'Sobremesas',
-    price: 9.50,
-    description: 'Massa cremosa e molhadinha com pedaços de nozes crocantes e chocolate nobre.',
-    image: '/assets/brownie.jpg',
-    badge: 'Doce Paixão 🍫',
-    isCustomizable: false,
-    available: true
-  },
-
-  // --- Pratos da Cantina da Nona ---
-  {
-    id: 'prod-cn-lasanha',
-    restaurantId: 'rest-cantina-nona',
-    name: 'Lasanha Bolonhesa da Nona',
-    category: 'Massas Caseiras',
-    price: 31.90,
-    description: 'Massa artesanal recheada com carne nobre cozida lentamente no molho de tomate rústico e queijo gratinado.',
-    image: '/assets/marmita_custom.jpg',
-    badge: 'Receita de Família 👵',
-    isCustomizable: true,
-    available: true
-  },
-  {
-    id: 'prod-cn-frango',
-    restaurantId: 'rest-cantina-nona',
-    name: 'Polenta com Frango Caipira',
-    category: 'Marmitas Tradicionais',
-    price: 28.50,
-    description: 'Polenta cremosa com queijo e galinha caipira desfiada ao molho com ervas frescas.',
-    image: '/assets/frango_grelhado.jpg',
-    badge: 'Clássico 🍲',
-    isCustomizable: true,
-    available: true
-  }
-];
-
-export const CUSTOMIZATION_OPTIONS = {
-  sizes: [
-    { id: 'size-p', name: 'Tamanho P (400g - Individual Leve)', price: 0 },
-    { id: 'size-m', name: 'Tamanho M (600g - Porção Padrão)', price: 4.00, default: true },
-    { id: 'size-g', name: 'Tamanho G (800g - Super Reforçado)', price: 8.00 }
-  ],
-  proteins: [
-    { id: 'prot-frango', name: 'Filé de Frango Grelhado Suculento', price: 0, default: true },
-    { id: 'prot-feijoada', name: 'Carnes Nobres da Feijoada (Costelinha, Paio e Carne Seca)', price: 3.50 },
-    { id: 'prot-picanha', name: 'Tiras de Picanha Grelhada na Manteiga', price: 7.00 },
-    { id: 'prot-salmao', name: 'Filé de Salmão com Molho de Laranja', price: 8.00 },
-    { id: 'prot-omelete', name: 'Omelete com Queijo e Tomate (Vegetariano)', price: 0 }
-  ],
-  bases: [
-    { id: 'base-arroz-branco', name: 'Arroz Branco Soltinho e Temperado', price: 0, default: true },
-    { id: 'base-arroz-integral', name: 'Arroz Integral com Chia e Linhaça', price: 0 },
-    { id: 'base-arroz-brocolis', name: 'Arroz com Brócolis Fresco Picado', price: 2.00 },
-    { id: 'base-sem-arroz', name: 'Sem Arroz (Aumentar Legumes)', price: 0 }
-  ],
-  beans: [
-    { id: 'bean-preto', name: 'Feijão Preto Encorpado com Louro e Alho', price: 0, default: true },
-    { id: 'bean-carioca', name: 'Feijão Carioca Clássico Cremoso', price: 0 },
-    { id: 'bean-sem', name: 'Sem Feijão', price: 0 }
-  ],
-  sides: [
-    { id: 'side-farofa', name: 'Farofa Crocante de Milho com Bacon' },
-    { id: 'side-couve', name: 'Couve Manteiga Refogada no Azeite' },
-    { id: 'side-legumes', name: 'Legumes Salteados (Brócolis, Cenoura, Abobrinha)' },
-    { id: 'side-banana', name: 'Banana da Terra Grelhada Caramelizada' },
-    { id: 'side-batata', name: 'Batata Rústica Assada com Alecrim' },
-    { id: 'side-salada', name: 'Salada de Folhas com Tomatinho Sweet Grape' }
-  ],
-  addons: [
-    { id: 'addon-ovo', name: 'Ovo Frito com Gema Mole Perfeita', price: 3.00 },
-    { id: 'addon-torresmo', name: 'Porção Extra de Torresmo Pururuca Crocante', price: 5.50 },
-    { id: 'addon-vinagrete', name: 'Pote de Vinagrete Fresco Artesanal', price: 3.50 },
-    { id: 'addon-molho-pimenta', name: 'Molho de Pimenta da Casa (Leve)', price: 2.00 }
-  ]
-};
+import { INITIAL_RESTAURANTS, INITIAL_PRODUCTS, CUSTOMIZATION_OPTIONS } from './data/catalog.js';
+import { apiRequest } from './api.js';
+export { INITIAL_RESTAURANTS, INITIAL_PRODUCTS, CUSTOMIZATION_OPTIONS } from './data/catalog.js';
 
 class MultiTenantStore {
   constructor() {
     this.listeners = [];
+    this.remote = typeof window !== 'undefined';
     this.loadState();
   }
 
   loadState() {
+    if (this.remote) {
+      this.restaurants ??= [];
+      this.products ??= [];
+      this.orders ??= [];
+      this.auth ??= { loggedIn: false, restaurantId: null };
+      try { this.cart = JSON.parse(safeStorage.getItem(STORAGE_KEYS.CART) || '[]'); }
+      catch { this.cart = []; }
+      return;
+    }
     try {
       const restJson = safeStorage.getItem(STORAGE_KEYS.RESTAURANTS);
       this.restaurants = restJson ? JSON.parse(restJson) : [...INITIAL_RESTAURANTS];
@@ -275,6 +82,66 @@ class MultiTenantStore {
     };
   }
 
+  async refresh() {
+    if (!this.remote) return;
+    if (this.refreshing) return this.refreshing;
+    this.refreshing = (async () => {
+      const data = await apiRequest('/state');
+      const changed = JSON.stringify([this.restaurants, this.products, this.orders, this.auth]) !== JSON.stringify([data.restaurants, data.products, data.orders, data.auth]);
+      Object.assign(this, data);
+      this.repriceCart();
+      if (changed) {
+        this.notify();
+        window.dispatchEvent(new Event('marmitaflow:sync'));
+      }
+    })();
+    try { await this.refreshing; } finally { this.refreshing = null; }
+  }
+
+  async connect() {
+    await this.refresh();
+    if (this.pollTimer) return;
+    this.pollTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') this.refresh().catch(() => {});
+    }, 8000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') this.refresh().catch(() => {});
+    });
+  }
+
+  repriceCart() {
+    let changed = false;
+    this.cart = this.cart.map(item => {
+      const product = this.products.find(p => p.id === item.productId && p.restaurantId === item.restaurantId);
+      if (!product) return item;
+      let cents = Math.round(product.price * 100);
+      if (product.isCustomizable) {
+        for (const [key, group] of [['size', 'sizes'], ['protein', 'proteins'], ['base', 'bases'], ['beans', 'beans']]) {
+          const option = CUSTOMIZATION_OPTIONS[group].find(o => o.name === item[key]);
+          if (!option) return item;
+          cents += Math.round((option.price || 0) * 100);
+        }
+        for (const name of item.addons || []) {
+          const option = CUSTOMIZATION_OPTIONS.addons.find(o => o.name === name);
+          if (!option) return item;
+          cents += Math.round(option.price * 100);
+        }
+      }
+      if (item.unitPrice === cents / 100) return item;
+      changed = true;
+      return { ...item, unitPrice: cents / 100 };
+    });
+    if (changed) safeStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(this.cart));
+  }
+
+  async mutate(path, method, body) {
+    // Wait for any poll to finish so an older response cannot overwrite this mutation.
+    if (this.refreshing) await this.refreshing.catch(() => {});
+    const result = await apiRequest(path, { method, body });
+    await this.refresh();
+    return result;
+  }
+
   notify() {
     this.listeners.forEach(listener => listener());
     if (typeof window !== 'undefined') {
@@ -284,7 +151,7 @@ class MultiTenantStore {
 
   // --- Helpers de Restaurantes ---
   getRestaurantBySlug(slug) {
-    return this.restaurants.find(r => r.slug === slug) || this.restaurants[0];
+    return this.restaurants.find(r => r.slug === slug) || null;
   }
 
   getRestaurantById(id) {
@@ -301,6 +168,7 @@ class MultiTenantStore {
 
   // --- Autenticação do Administrador ---
   loginAdmin(email, password) {
+    if (this.remote) return this.mutate('/auth/login', 'POST', { email, password }).then(() => ({ success: true, restaurant: this.getLoggedRestaurant() }));
     const rest = this.restaurants.find(r => r.adminEmail.toLowerCase() === email.trim().toLowerCase() && r.adminPass === password.trim());
     if (rest) {
       this.auth = {
@@ -317,6 +185,7 @@ class MultiTenantStore {
   }
 
   logoutAdmin() {
+    if (this.remote) return this.mutate('/auth/logout', 'POST', {});
     this.auth = { loggedIn: false, restaurantId: null };
     safeStorage.removeItem(STORAGE_KEYS.AUTH);
     this.notify();
@@ -329,6 +198,7 @@ class MultiTenantStore {
 
   // --- Criar Novo Restaurante Independente ---
   createRestaurant(data) {
+    if (this.remote) return this.mutate('/restaurants', 'POST', data).then(result => result.restaurant);
     const email = data.adminEmail.toLowerCase().trim();
     if (this.restaurants.some(restaurant => restaurant.adminEmail === email)) {
       throw new Error('Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.');
@@ -404,6 +274,7 @@ class MultiTenantStore {
 
   // --- Atualizar Restaurante ---
   updateRestaurant(restaurantId, updates) {
+    if (this.remote) return this.mutate(`/restaurants/${encodeURIComponent(restaurantId)}`, 'PATCH', updates);
     this.restaurants = this.restaurants.map(r => r.id === restaurantId ? { ...r, ...updates } : r);
     safeStorage.setItem(STORAGE_KEYS.RESTAURANTS, JSON.stringify(this.restaurants));
     this.notify();
@@ -411,6 +282,7 @@ class MultiTenantStore {
 
   // --- Gestão de Pratos (CRUD do Dono) ---
   addProduct(productData) {
+    if (this.remote) return this.mutate('/products', 'POST', productData).then(result => result.product);
     const newProd = {
       ...productData,
       id: 'prod-' + Date.now(),
@@ -423,18 +295,25 @@ class MultiTenantStore {
   }
 
   updateProduct(productId, updates) {
+    if (this.remote) return this.mutate(`/products/${encodeURIComponent(productId)}`, 'PATCH', updates);
     this.products = this.products.map(p => p.id === productId ? { ...p, ...updates } : p);
     safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
     this.notify();
   }
 
   deleteProduct(productId) {
+    if (this.remote) return this.mutate(`/products/${encodeURIComponent(productId)}`, 'DELETE');
     this.products = this.products.filter(p => p.id !== productId);
     safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
     this.notify();
   }
 
   toggleStock(productId) {
+    if (this.remote) {
+      const product = this.products.find(p => p.id === productId);
+      if (!product) return Promise.reject(new Error('Prato não encontrado.'));
+      return this.updateProduct(productId, { available: !product.available });
+    }
     this.products = this.products.map(p => p.id === productId ? { ...p, available: !p.available } : p);
     safeStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
     this.notify();
@@ -492,7 +371,35 @@ class MultiTenantStore {
   }
 
   // --- Pedidos & Cozinha KDS ---
+  getAvailableAlternative(productId, restaurantId) {
+    const product = this.products.find(p => p.id === productId && p.restaurantId === restaurantId);
+    if (!product) return null;
+    const candidates = this.products.filter(p => p.restaurantId === restaurantId && p.id !== productId && p.available);
+    return candidates.find(p => p.id === product.suggestedAlternativeId)
+      || candidates.find(p => p.category === product.category)
+      || null;
+  }
+
+  validateOrderItems(restaurantId, items) {
+    const restaurant = this.getRestaurantById(restaurantId);
+    if (!restaurant?.isOpen) throw new Error('O restaurante está fechado no momento.');
+    if (!Array.isArray(items) || items.length === 0) throw new Error('Sua sacola está vazia.');
+    const unavailable = items.filter(item => !this.products.some(product =>
+      product.id === item.productId && product.restaurantId === restaurantId && product.available
+    ));
+    if (unavailable.length) throw new Error('Há itens indisponíveis na sacola. Remova ou escolha uma alternativa para continuar.');
+    if (items.some(item => item.restaurantId !== restaurantId || !Number.isInteger(item.qty) || item.qty < 1)) {
+      throw new Error('Revise os itens e as quantidades da sacola.');
+    }
+  }
+
+  isOrderChecklistComplete(order) {
+    return !!order?.items?.length && order.items.every((_, index) => order.checklist?.[index] === true);
+  }
+
   createOrder(orderData) {
+    if (this.remote) return this.createRemoteOrder(orderData);
+    this.validateOrderItems(orderData.restaurantId, orderData.items);
     const restOrders = this.getOrdersByRestaurant(orderData.restaurantId);
     const nextNum = 100 + restOrders.length + 1;
 
@@ -522,14 +429,27 @@ class MultiTenantStore {
   }
 
   updateOrderStatus(orderId, status) {
+    if (this.remote) return this.mutate(`/orders/${encodeURIComponent(orderId)}/status`, 'PATCH', { status });
+    const order = this.orders.find(o => o.id === orderId);
+    if (!order) throw new Error('Pedido não encontrado.');
+    const nextStatus = { recebido: 'preparo', preparo: 'pronto', pronto: 'entregue' };
+    if (nextStatus[order.status] !== status) throw new Error('Avance o pedido uma etapa por vez.');
+    if (status === 'entregue' && !this.isOrderChecklistComplete(order)) {
+      throw new Error('Confira todos os itens antes de despachar o pedido.');
+    }
     this.orders = this.orders.map(o => o.id === orderId ? { ...o, status } : o);
     safeStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
     this.notify();
   }
 
   toggleOrderChecklist(orderId, itemIdx) {
+    if (this.remote) {
+      const order = this.orders.find(o => o.id === orderId);
+      return this.mutate(`/orders/${encodeURIComponent(orderId)}/checklist`, 'PATCH', { itemIdx, checked: !order?.checklist?.[itemIdx] });
+    }
     this.orders = this.orders.map(o => {
       if (o.id === orderId) {
+        if (o.status === 'entregue' || !Number.isInteger(itemIdx) || !o.items[itemIdx]) return o;
         const cur = o.checklist || {};
         return {
           ...o,
@@ -543,6 +463,7 @@ class MultiTenantStore {
   }
 
   resetAllToDefaults() {
+    if (this.remote) throw new Error('O banco compartilhado não pode ser apagado pelo navegador.');
     safeStorage.removeItem(STORAGE_KEYS.RESTAURANTS);
     safeStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     safeStorage.removeItem(STORAGE_KEYS.ORDERS);
@@ -554,6 +475,26 @@ class MultiTenantStore {
     this.cart = [];
     this.auth = { loggedIn: false, restaurantId: null };
     this.notify();
+  }
+
+  async createRemoteOrder(orderData) {
+    const fingerprint = JSON.stringify(orderData);
+    if (this.orderPending) throw new Error('Seu pedido já está sendo enviado. Aguarde.');
+    let attempt;
+    try { attempt = JSON.parse(safeStorage.getItem('marmitaflow_order_attempt') || 'null'); } catch {}
+    if (!attempt || attempt.fingerprint !== fingerprint) attempt = { fingerprint, requestId: crypto.randomUUID() };
+    safeStorage.setItem('marmitaflow_order_attempt', JSON.stringify(attempt));
+    this.orderPending = true;
+    try {
+      const { order } = await apiRequest('/orders', { method: 'POST', body: { ...orderData, requestId: attempt.requestId } });
+      this.orders = [order, ...this.orders.filter(o => o.id !== order.id)];
+      this.clearCart();
+      safeStorage.removeItem('marmitaflow_order_attempt');
+      return order;
+    } catch (error) {
+      await this.refresh().catch(() => {});
+      throw error;
+    } finally { this.orderPending = false; }
   }
 }
 

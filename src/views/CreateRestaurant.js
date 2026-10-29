@@ -28,7 +28,7 @@ export function renderCreateRestaurant(container, navigateTo) {
         </div>
 
         <form id="create-restaurant-form" class="auth-form">
-          <p class="demo-notice">Projeto de demonstração: o cadastro e os pedidos ficam salvos neste navegador.</p>
+          <p class="demo-notice">Seu restaurante e seus pedidos são salvos no servidor. Os pagamentos desta versão continuam demonstrativos.</p>
           <div id="register-error" class="login-error-alert" role="alert" hidden></div>
           <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--color-primary); letter-spacing: 1px; margin-bottom: 12px;">
             1. Dados do Seu Estabelecimento
@@ -142,7 +142,7 @@ export function renderCreateRestaurant(container, navigateTo) {
   });
 
   // Envio do formulário
-  container.querySelector('#create-restaurant-form')?.addEventListener('submit', (e) => {
+  container.querySelector('#create-restaurant-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = container.querySelector('#new-rest-name').value.trim();
     const ownerName = container.querySelector('#new-rest-owner').value.trim();
@@ -161,7 +161,10 @@ export function renderCreateRestaurant(container, navigateTo) {
       return;
     }
     try {
-      store.createRestaurant({
+      const submit = e.currentTarget.querySelector('[type="submit"]');
+      if (submit.disabled) return;
+      submit.disabled = true;
+      await store.createRestaurant({
         name,
         ownerName,
         phone,
@@ -176,6 +179,9 @@ export function renderCreateRestaurant(container, navigateTo) {
       error.textContent = reason.message;
       error.hidden = false;
       return;
+    } finally {
+      const submit = container.querySelector('[type="submit"]');
+      if (submit) submit.disabled = false;
     }
 
     // Redireciona diretamente para o painel de administração dele

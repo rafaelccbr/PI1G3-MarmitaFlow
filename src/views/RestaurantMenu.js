@@ -4,6 +4,8 @@ import { sounds } from '../audio.js';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
 import { escapeHTML, applyRestaurantTheme } from '../ui.js';
+import { menuIcon } from '../menu-icons.js';
+import '../menu-polish.css';
 
 let activeCategory = 'Todos';
 let searchQuery = '';
@@ -16,10 +18,12 @@ let discountPercent = 0;
 let couponCode = '';
 let orderType = 'delivery'; // 'delivery' ou 'pickup'
 let activeRestaurantSlug = null;
+let pendingReplacement = null;
 
 export function resetMenuState() {
   selectedProductForCustomization = null;
   currentCustomization = null;
+  pendingReplacement = null;
   isCartOpen = false;
   isCheckoutOpen = false;
   activeOrderTrackingId = null;
@@ -72,29 +76,29 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
   container.innerHTML = `
     <div class="restaurant-site-wrapper format-desktop">
       <div class="site-cardapio-container">
+        <div class="menu-masthead"><a href="#/plataforma" class="menu-platform-link">MarmitaFlow<span>Cardápio digital</span></a><span class="menu-masthead-note">Da sua escolha à nossa cozinha.</span></div>
 
         <!-- BANNER DE CAPA DO RESTAURANTE -->
         <header class="restaurant-hero-banner">
-          <img src="${restaurant.bannerUrl || '/assets/feijoada_flow.jpg'}" alt="Capa ${restaurant.name}" class="restaurant-banner-image" />
+          <img src="${escapeHTML(restaurant.bannerUrl || '/assets/feijoada_flow.jpg')}" alt="Capa ${escapeHTML(restaurant.name)}" class="restaurant-banner-image" />
           <div class="restaurant-banner-gradient"></div>
 
           <div class="restaurant-banner-content">
             <div class="restaurant-brand-row">
-              <img src="${restaurant.logoUrl || '/assets/mascote_flow.jpg'}" alt="${restaurant.name}" class="restaurant-logo-circle" />
+              <img src="${escapeHTML(restaurant.logoUrl || '/assets/mascote_flow.jpg')}" alt="${escapeHTML(restaurant.name)}" class="restaurant-logo-circle" />
               <div class="restaurant-main-info">
                 <div class="restaurant-title-line">
-                  <h1>${restaurant.name}</h1>
+                  <h1>${escapeHTML(restaurant.name)}</h1>
                   <span class="restaurant-status-chip ${restaurant.isOpen ? 'open' : 'closed'}">
-                    ${restaurant.isOpen ? 'Aberto para Pedidos' : 'Fechado no Momento'}
+                    ${restaurant.isOpen ? 'Aberto agora' : 'Fechado no momento'}
                   </span>
                 </div>
-                <p class="restaurant-bio">${restaurant.tagline}</p>
+                <p class="restaurant-bio">${escapeHTML(restaurant.tagline)}</p>
                 <div class="restaurant-badges-strip">
-                  <span class="badge-item">⭐ <strong>${restaurant.rating}</strong></span>
-                  <span class="badge-item">⏱️ ${restaurant.deliveryTime}</span>
-                  <span class="badge-item">🛵 Entrega: ${restaurant.deliveryFee === 0 ? 'Grátis' : 'R$ ' + restaurant.deliveryFee.toFixed(2).replace('.', ',')}</span>
-                  <span class="badge-item">📍 ${restaurant.address}</span>
+                  <span class="badge-item">${menuIcon('clock')} ${escapeHTML(restaurant.deliveryTime)}</span>
+                  <span class="badge-item">${menuIcon('truck')} Entrega ${restaurant.deliveryFee === 0 ? 'grátis' : 'R$ ' + restaurant.deliveryFee.toFixed(2).replace('.', ',')}</span>
                 </div>
+                <p class="menu-address">${menuIcon('pin')}${escapeHTML(restaurant.address)}</p>
               </div>
             </div>
           </div>
@@ -120,7 +124,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
 
             <!-- Botão Ver Carrinho -->
             <button class="btn-cart-trigger" id="btn-top-cart">
-              <span class="cart-icon">🛒</span>
+              ${menuIcon('bag')}
               <span>Sacola</span>
               <span class="cart-pill-count">${cart.reduce((sum, item) => sum + item.qty, 0)}</span>
               ${cart.length > 0 ? `<span class="cart-pill-total">R$ ${finalTotal.toFixed(2).replace('.', ',')}</span>` : ''}
@@ -130,8 +134,8 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
           <!-- Pílulas de Categorias -->
           <nav class="categories-nav-scroll" aria-label="Filtrar pratos por categoria">
             ${categories.map(cat => `
-              <button class="cat-nav-btn ${activeCategory === cat ? 'active' : ''}" data-cat="${cat}">
-                ${getCategoryEmoji(cat)} ${cat}
+              <button class="cat-nav-btn ${activeCategory === cat ? 'active' : ''}" data-cat="${escapeHTML(cat)}">
+                ${escapeHTML(cat)}
               </button>
             `).join('')}
           </nav>
@@ -147,8 +151,8 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
         <section class="menu-content-area" aria-label="Pratos do cardápio">
           <div class="menu-section-header">
             <div>
-              <h2>${activeCategory === 'Todos' ? 'Cardápio Completo' : activeCategory}</h2>
-              <p>Itens preparados na hora com os melhores ingredientes da cozinha.</p>
+              <h2>${activeCategory === 'Todos' ? 'O que vai ser hoje?' : escapeHTML(activeCategory)}</h2>
+              <p>Escolha seu prato. Os acompanhamentos ficam por sua conta.</p>
             </div>
             <span class="items-count-tag">${filteredProducts.length} itens</span>
           </div>
@@ -165,25 +169,26 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
               ${filteredProducts.map(prod => `
                 <div class="dish-card ${!prod.available ? 'dish-out-of-stock' : ''}" data-id="${prod.id}">
                   <div class="dish-image-wrapper">
-                    <img src="${prod.image || '/assets/feijoada_flow.jpg'}" alt="${prod.name}" loading="lazy" />
-                    ${prod.badge ? `<span class="dish-badge-pill">${prod.badge}</span>` : ''}
+                    <img src="${escapeHTML(prod.image || '/assets/feijoada_flow.jpg')}" alt="${escapeHTML(prod.name)}" loading="lazy" />
+                    ${prod.isCustomizable ? '<span class="dish-badge-pill">Monte do seu jeito</span>' : ''}
                     ${!prod.available ? `<div class="dish-stock-overlay">Esgotado</div>` : ''}
                   </div>
 
                   <div class="dish-body">
-                    <div class="dish-category-label">${prod.category}</div>
-                    <h3 class="dish-name">${prod.name}</h3>
-                    <p class="dish-desc">${prod.description}</p>
+                    <div class="dish-category-label">${escapeHTML(prod.category)}</div>
+                    <h3 class="dish-name">${escapeHTML(prod.name)}</h3>
+                    <p class="dish-desc">${escapeHTML(prod.description)}</p>
 
                     <div class="dish-card-footer">
                       <div class="dish-price-group">
+                        ${prod.isCustomizable ? '<span class="dish-price-caption">A partir de</span>' : ''}
                         <span class="dish-currency">R$</span>
                         <span class="dish-price-val">${prod.price.toFixed(2).replace('.', ',')}</span>
                       </div>
 
                       ${prod.available ? `
                         <button class="btn-add-dish" data-id="${prod.id}" aria-label="${prod.isCustomizable ? 'Montar' : 'Adicionar'} ${escapeHTML(prod.name)}" ${!restaurant.isOpen ? 'disabled' : ''}>
-                          ${prod.isCustomizable ? 'Montar 🍱' : 'Adicionar +'}
+                          ${prod.isCustomizable ? 'Escolher' : 'Adicionar'} ${menuIcon('plus')}
                         </button>
                       ` : `
                         <button class="btn-dish-unavailable" data-id="${prod.id}" disabled>
@@ -191,6 +196,7 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
                         </button>
                       `}
                     </div>
+                    ${!prod.available ? renderAlternativeHtml(prod.id, restaurant.id) : ''}
                   </div>
                 </div>
               `).join('')}
@@ -201,10 +207,10 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
         <!-- RODAPÉ DO RESTAURANTE -->
         <footer class="restaurant-page-footer">
           <div class="footer-restaurant-details">
-            <img src="${restaurant.logoUrl || '/assets/mascote_flow.jpg'}" alt="${restaurant.name}" class="footer-logo" />
+            <img src="${escapeHTML(restaurant.logoUrl || '/assets/mascote_flow.jpg')}" alt="${escapeHTML(restaurant.name)}" class="footer-logo" />
             <div>
-              <h3>${restaurant.name}</h3>
-              <p>${restaurant.address} • WhatsApp: ${restaurant.phone}</p>
+              <h3>${escapeHTML(restaurant.name)}</h3>
+              <p>${escapeHTML(restaurant.address)} • WhatsApp: ${escapeHTML(restaurant.phone)}</p>
               <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Horário: Seg a Sáb das 10h30 às 15h30 e das 18h30 às 22h30</p>
             </div>
           </div>
@@ -217,9 +223,9 @@ export function renderRestaurantMenu(container, navigateTo, slug = 'marmita-flow
         <button class="mobile-floating-cart-pill" id="btn-mobile-open-cart" aria-label="Abrir sacola">
           <div class="m-cart-left">
             <span class="m-cart-badge">${cart.reduce((s, i) => s + i.qty, 0)}</span>
-            <span>Ver Sacola</span>
+            <span>Ver sacola</span>
           </div>
-          <span class="m-cart-price">R$ ${finalTotal.toFixed(2).replace('.', ',')}</span>
+          <span class="m-cart-price">R$ ${finalTotal.toFixed(2).replace('.', ',')} ${menuIcon('arrow')}</span>
         </button>
       ` : ''}
 
@@ -260,15 +266,16 @@ function renderCustomizationModalHtml(product) {
       <div class="modal-content-card modal-lg">
         <div class="modal-header-bar">
           <div>
-            <h3>Monte Sua Marmita: ${product.name}</h3>
+            <h3>Monte Sua Marmita: ${escapeHTML(product.name)}</h3>
             <span style="font-size: 0.82rem; color: var(--text-muted);">Escolha suas preferências para prepararmos no capricho</span>
           </div>
           <button class="modal-close-btn" id="btn-close-custom-modal">&times;</button>
         </div>
 
         <div class="modal-scroll-body">
-          
+          ${pendingReplacement ? `<p class="availability-warning" role="status">Você está substituindo ${pendingReplacement.qty} unidade(s) de ${escapeHTML(pendingReplacement.productName)}. A troca só será feita ao confirmar; o total será recalculado com o novo prato.</p>` : ''}
           <!-- Tamanho -->
+          <p class="selection-description">${escapeHTML(product.description)}</p>
           <div class="cust-step-box">
             <div class="cust-step-header">
               <span class="cust-step-title">1. Escolha o Tamanho da Marmita</span>
@@ -348,7 +355,7 @@ function renderCustomizationModalHtml(product) {
           <div class="cust-step-box">
             <div class="cust-step-header">
               <span class="cust-step-title">5. Acompanhamentos (Escolha até 2)</span>
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-primary);">${custom.sides.length}/2 selecionados</span>
+              <span id="cust-sides-count" aria-live="polite" style="font-size: 0.78rem; font-weight: 700; color: var(--color-primary);">${custom.sides.length}/2 selecionados</span>
             </div>
             <div class="cust-options-list">
               ${CUSTOMIZATION_OPTIONS.sides.map(side => {
@@ -398,7 +405,7 @@ function renderCustomizationModalHtml(product) {
               class="form-textarea" 
               style="width: 100%; height: 75px; resize: none;" 
               placeholder="Ex: Marmita bem quente, sem cebola, salada fresca..."
-            >${custom.notes || ''}</textarea>
+            >${escapeHTML(custom.notes || '')}</textarea>
           </div>
 
         </div>
@@ -406,7 +413,7 @@ function renderCustomizationModalHtml(product) {
         <div class="modal-footer-bar">
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Subtotal da Marmita:</div>
-            <div style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--color-primary);">
+            <div id="cust-current-price" aria-live="polite" style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--color-primary);">
               R$ ${calculateCurrentCustomizationPrice(product, custom).toFixed(2).replace('.', ',')}
             </div>
           </div>
@@ -419,25 +426,38 @@ function renderCustomizationModalHtml(product) {
   `;
 }
 
+function renderAlternativeHtml(productId, restaurantId, cartItemId = '') {
+  const alternative = store.getAvailableAlternative(productId, restaurantId);
+  if (!alternative) return '<p class="availability-note">Sem alternativa disponível no momento.</p>';
+  return `<button type="button" class="btn-secondary stock-alternative" data-product-id="${alternative.id}" data-cart-item-id="${cartItemId}" ${!store.getRestaurantById(restaurantId)?.isOpen ? 'disabled' : ''}>
+    ${cartItemId ? 'Trocar por' : 'Escolher'} ${escapeHTML(alternative.name)} · R$ ${alternative.price.toFixed(2).replace('.', ',')}${alternative.isCustomizable ? ' (a partir de)' : ''}
+  </button>`;
+}
+
 function renderCartModalHtml(cart, cartSummary, finalTotal, deliveryFee, restaurant) {
+  const unavailableItems = cart.filter(item => !store.products.some(p => p.id === item.productId && p.restaurantId === restaurant.id && p.available));
   return `
     <div class="modal-overlay" id="modal-cart-overlay">
-      <div class="modal-content-card">
+      <div class="modal-content-card cart-sheet">
         <div class="modal-header-bar">
           <div>
-            <h3>Sua Sacola</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">${restaurant.name}</span>
+            <h3>Sua sacola</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHTML(restaurant.name)}</span>
           </div>
           <button class="modal-close-btn" id="btn-close-cart-modal">&times;</button>
         </div>
 
         <div class="modal-scroll-body">
+          <ol class="purchase-steps" aria-label="Etapas do pedido"><li aria-current="step"><span>1</span>Sacola</li><li><span>2</span>Dados e pagamento</li><li><span>3</span>Acompanhar</li></ol>
+          ${cart.length ? '<button class="link-btn cart-clear" id="btn-clear-cart">Esvaziar sacola</button>' : ''}
+          ${unavailableItems.length ? '<p class="availability-warning" role="alert">Alguns itens ficaram indisponíveis. Remova ou troque os itens sinalizados para finalizar.</p>' : ''}
+          ${!restaurant.isOpen ? '<p class="availability-warning" role="alert">O restaurante está fechado no momento. Sua sacola foi mantida.</p>' : ''}
           <div class="order-type-selector">
             <button class="order-type-btn ${orderType === 'delivery' ? 'active' : ''}" id="btn-type-delivery">
-              🛵 Entrega (${restaurant.deliveryFee === 0 ? 'Grátis' : 'R$ ' + restaurant.deliveryFee.toFixed(2).replace('.', ',')})
+              ${menuIcon('truck')} Entrega <small>${restaurant.deliveryFee === 0 ? 'Grátis' : 'R$ ' + restaurant.deliveryFee.toFixed(2).replace('.', ',')}</small>
             </button>
             <button class="order-type-btn ${orderType === 'pickup' ? 'active' : ''}" id="btn-type-pickup">
-              🏪 Retirar no Balcão (Grátis)
+              ${menuIcon('store')} Retirada <small>Grátis</small>
             </button>
           </div>
 
@@ -445,20 +465,28 @@ function renderCartModalHtml(cart, cartSummary, finalTotal, deliveryFee, restaur
             <div style="text-align: center; padding: 48px 16px; color: var(--text-muted);">
               <div style="font-size: 3.5rem; margin-bottom: 12px;">🧺</div>
               <h4 style="font-family: var(--font-heading); font-size: 1.15rem; color: var(--text-main); margin-bottom: 6px;">Sua sacola está vazia</h4>
-              <p style="font-size: 0.88rem;">Escolha seus pratos favoritos no cardápio de ${restaurant.name}!</p>
+              <p style="font-size: 0.88rem;">Escolha seus pratos favoritos no cardápio de ${escapeHTML(restaurant.name)}!</p>
             </div>
           ` : `
             <div class="cart-items-list">
               ${cart.map(item => `
                 <div class="cart-item-card">
+                  <img class="cart-dish-photo" src="${escapeHTML(store.products.find(p => p.id === item.productId)?.image || '/assets/feijoada_flow.jpg')}" alt="" />
                   <div class="cart-item-details">
-                    <h4 class="cart-item-title">${item.productName}</h4>
-                    ${item.size ? `<div class="cart-spec">📏 ${item.size}</div>` : ''}
-                    ${item.protein ? `<div class="cart-spec">🥩 ${item.protein}</div>` : ''}
-                    ${item.base ? `<div class="cart-spec">🍚 ${item.base}</div>` : ''}
-                    ${item.sides && item.sides.length > 0 ? `<div class="cart-spec">🥗 ${item.sides.join(', ')}</div>` : ''}
-                    ${item.addons && item.addons.length > 0 ? `<div class="cart-spec">✨ ${item.addons.join(', ')}</div>` : ''}
-                    ${item.notes ? `<div class="cart-spec cart-note">📝 Obs: ${item.notes}</div>` : ''}
+                    <h4 class="cart-item-title">${escapeHTML(item.productName)}</h4>
+                    ${unavailableItems.includes(item) ? `
+                      <div class="availability-warning">
+                        <p>Este item não está disponível.</p>
+                        ${renderAlternativeHtml(item.productId, restaurant.id, item.cartItemId)}
+                        <button type="button" class="btn-secondary remove-unavailable-item" data-id="${item.cartItemId}">Remover item</button>
+                      </div>
+                    ` : ''}
+                    ${item.size ? `<div class="cart-spec">${escapeHTML(item.size)}</div>` : ''}
+                    ${item.protein ? `<div class="cart-spec">Proteína: ${escapeHTML(item.protein)}</div>` : ''}
+                    ${item.base ? `<div class="cart-spec">Base: ${escapeHTML(item.base)}</div>` : ''}
+                    ${item.sides && item.sides.length > 0 ? `<div class="cart-spec">Acompanhamentos: ${escapeHTML(item.sides.join(', '))}</div>` : ''}
+                    ${item.addons && item.addons.length > 0 ? `<div class="cart-spec">Adicionais: ${escapeHTML(item.addons.join(', '))}</div>` : ''}
+                    ${item.notes ? `<div class="cart-spec cart-note">Observação: ${escapeHTML(item.notes)}</div>` : ''}
                     <div class="cart-item-price">
                       R$ ${(item.unitPrice * item.qty).toFixed(2).replace('.', ',')}
                     </div>
@@ -493,7 +521,7 @@ function renderCartModalHtml(cart, cartSummary, finalTotal, deliveryFee, restaur
                 </div>
               ` : `
                 <div style="color: var(--text-muted); font-size: 0.72rem; margin-top: 4px;">
-                  Dica: use <strong>MARMITA10</strong> para testar 10% de desconto.
+                  Tem um cupom? Aplique antes de continuar.
                 </div>
               `}
             </div>
@@ -523,11 +551,9 @@ function renderCartModalHtml(cart, cartSummary, finalTotal, deliveryFee, restaur
         </div>
 
         <div class="modal-footer-bar">
-          <button class="btn-secondary" id="btn-clear-cart" ${cart.length === 0 ? 'disabled' : ''}>
-            Limpar
-          </button>
-          <button class="btn-primary" id="btn-proceed-checkout" ${cart.length === 0 ? 'disabled' : ''}>
-            Finalizar Pedido →
+          <div class="cart-footer-total"><span>Total com ${orderType === 'pickup' ? 'retirada' : 'entrega'}</span><strong>R$ ${(cart.length ? finalTotal : 0).toFixed(2).replace('.', ',')}</strong></div>
+          <button class="btn-primary" id="btn-proceed-checkout" ${cart.length === 0 || unavailableItems.length || !restaurant.isOpen ? 'disabled' : ''}>
+            Continuar ${menuIcon('arrow')}
           </button>
         </div>
       </div>
@@ -537,12 +563,12 @@ function renderCartModalHtml(cart, cartSummary, finalTotal, deliveryFee, restaur
 
 function renderCheckoutModalHtml(finalTotal, restaurant) {
   return `
-    <div class="modal-overlay" id="modal-checkout-overlay">
+    <div class="modal-overlay" id="modal-checkout-overlay" data-total="${finalTotal.toFixed(2)}">
       <div class="modal-content-card">
         <div class="modal-header-bar">
           <div>
             <h3>Finalizar pedido de demonstração</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Pedido enviado direto para a cozinha de ${restaurant.name}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Pedido enviado direto para a cozinha de ${escapeHTML(restaurant.name)}</span>
           </div>
           <button class="modal-close-btn" id="btn-close-checkout">&times;</button>
         </div>
@@ -577,7 +603,7 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
             <!-- Pix -->
             <div id="checkout-pix-box" class="pix-container-box">
               <div style="font-size: 0.88rem; font-weight: 700; color: var(--color-secondary-hover); margin-bottom: 4px;">
-                Chave Pix de ${restaurant.name}: ${restaurant.pixKey}
+                Chave Pix de ${escapeHTML(restaurant.name)}: ${escapeHTML(restaurant.pixKey)}
               </div>
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;">
                 Escaneie o QR Code ou use a chave Copia e Cola
@@ -591,7 +617,7 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
                   id="pix-code-field" 
                   class="pix-code-input" 
                   readonly 
-                  value="00020126580014BR.GOV.BCB.PIX0136${restaurant.pixKey}520400005303986540${finalTotal.toFixed(2)}5802BR5915${restaurant.name.toUpperCase().replace(/\s+/g, '')}6009SAOPAULO62070503***6304" 
+                  value="00020126580014BR.GOV.BCB.PIX0136${escapeHTML(restaurant.pixKey)}520400005303986540${finalTotal.toFixed(2)}5802BR5915${escapeHTML(restaurant.name.toUpperCase().replace(/\s+/g, ''))}6009SAOPAULO62070503***6304"
                 />
                 <button class="btn-copy-pix" id="btn-copy-pix">Copiar Pix</button>
               </div>
@@ -637,7 +663,7 @@ function renderOrderTrackerModalHtml(orderId, restaurant, navigateTo) {
             <div style="font-size: 0.75rem; font-weight: 800; color: var(--color-primary); text-transform: uppercase;">
               Acompanhamento ao Vivo
             </div>
-            <h3 style="color: var(--text-main);">Pedido #${order.orderNumber} • ${restaurant.name}</h3>
+            <h3 style="color: var(--text-main);">Pedido #${order.orderNumber} • ${escapeHTML(restaurant.name)}</h3>
           </div>
           <button class="modal-close-btn" id="btn-close-tracker">&times;</button>
         </div>
@@ -683,12 +709,12 @@ function renderOrderTrackerModalHtml(orderId, restaurant, navigateTo) {
             </div>
             ${order.items.map(it => `
               <div style="margin-bottom: 8px; font-size: 0.88rem;">
-                <strong>${it.qty}x ${it.productName}</strong>
-                ${it.size ? `<span style="color: var(--text-muted); font-size: 0.78rem;"> • ${it.size}</span>` : ''}
+                <strong>${it.qty}x ${escapeHTML(it.productName)}</strong>
+                ${it.size ? `<span style="color: var(--text-muted); font-size: 0.78rem;"> • ${escapeHTML(it.size)}</span>` : ''}
               </div>
             `).join('')}
             <div style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px; display: flex; justify-content: space-between; font-weight: 800;">
-              <span>Total Pago (${order.paymentMethod}):</span>
+              <span>Total do pedido (${escapeHTML(order.paymentMethod)} simulado):</span>
               <span style="color: var(--color-primary);">R$ ${order.total.toFixed(2).replace('.', ',')}</span>
             </div>
           </div>
@@ -764,12 +790,12 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
     renderRestaurantMenu(container, navigateTo, slug);
   });
 
-  // Clicar em prato
-  container.querySelectorAll('.dish-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const prodId = card.dataset.id;
+  const openProduct = (prodId, replacement = null) => {
       const product = store.products.find(p => p.id === prodId);
-      if (!product || !product.available || !restaurant.isOpen) return;
+      if (!product || product.restaurantId !== restaurant.id || !product.available || !store.getRestaurantById(restaurant.id)?.isOpen) return;
+      pendingReplacement = replacement;
+      isCartOpen = false;
+      isCheckoutOpen = false;
 
       if (product.isCustomizable) {
         selectedProductForCustomization = product;
@@ -784,33 +810,49 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
         };
         renderRestaurantMenu(container, navigateTo, slug);
       } else {
+        if (pendingReplacement) store.removeFromCart(pendingReplacement.cartItemId);
         store.addToCart({
           productId: product.id,
           productName: product.name,
           unitPrice: product.price,
-          qty: 1
+          qty: pendingReplacement?.qty || 1
         }, restaurant.id);
+        isCartOpen = !!pendingReplacement;
+        pendingReplacement = null;
         showMenuToast(`✓ ${product.name} adicionado à sacola!`);
         renderRestaurantMenu(container, navigateTo, slug);
       }
+  };
+  // As alternativas usam o mesmo fluxo de escolha e personalização do cardápio.
+  container.querySelectorAll('.stock-alternative').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const replacement = store.cart.find(item => item.cartItemId === button.dataset.cartItemId);
+      openProduct(button.dataset.productId, replacement || null);
     });
+  });
+  container.querySelectorAll('.dish-card').forEach(card => {
+    card.addEventListener('click', () => openProduct(card.dataset.id));
   });
 
   // Customização Modal
   if (selectedProductForCustomization) {
     container.querySelector('#btn-close-custom-modal')?.addEventListener('click', () => {
+      isCartOpen = !!pendingReplacement;
+      pendingReplacement = null;
       selectedProductForCustomization = null;
       renderRestaurantMenu(container, navigateTo, slug);
     });
     container.querySelector('#modal-customization-overlay')?.addEventListener('click', (e) => {
       if (e.target.id === 'modal-customization-overlay') {
+        isCartOpen = !!pendingReplacement;
+        pendingReplacement = null;
         selectedProductForCustomization = null;
         renderRestaurantMenu(container, navigateTo, slug);
       }
     });
 
-    container.querySelectorAll('.cust-option-item').forEach(item => {
-      item.addEventListener('click', () => {
+    const selectCustomizationOption = item => {
         const type = item.dataset.type;
         const id = item.dataset.id;
 
@@ -847,15 +889,46 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
         const notesField = container.querySelector('#cust-notes-input');
         if (notesField) currentCustomization.notes = notesField.value;
 
-        renderRestaurantMenu(container, navigateTo, slug);
+        // Keep the dialog and its inputs mounted: selecting an ingredient must not
+        // reset scroll, restart the entrance animation or move keyboard focus.
+        const selected = {
+          size: new Set([currentCustomization.size.id]),
+          protein: new Set([currentCustomization.protein.id]),
+          base: new Set([currentCustomization.base.id]),
+          beans: new Set([currentCustomization.beans.id]),
+          side: new Set(currentCustomization.sides.map(side => side.id)),
+          addon: new Set(currentCustomization.addons.map(addon => addon.id))
+        };
+        container.querySelectorAll('.cust-option-item').forEach(option => {
+          const checked = selected[option.dataset.type].has(option.dataset.id);
+          option.classList.toggle('selected', checked);
+          option.querySelector('input').checked = checked;
+        });
+        container.querySelector('#cust-sides-count').textContent = `${currentCustomization.sides.length}/2 selecionados`;
+        container.querySelector('#cust-current-price').textContent = `R$ ${calculateCurrentCustomizationPrice(selectedProductForCustomization, currentCustomization).toFixed(2).replace('.', ',')}`;
+    };
+    container.querySelectorAll('.cust-option-item').forEach(item => {
+      item.addEventListener('click', () => selectCustomizationOption(item));
+      // Arrow keys change native radio groups without firing a click.
+      item.querySelector('input[type="radio"]')?.addEventListener('change', event => {
+        if (event.target.checked && !item.classList.contains('selected')) selectCustomizationOption(item);
       });
     });
 
     container.querySelector('#btn-confirm-add-cart')?.addEventListener('click', () => {
+      if (!store.getRestaurantById(restaurant.id)?.isOpen || !store.products.some(p => p.id === selectedProductForCustomization.id && p.restaurantId === restaurant.id && p.available)) {
+        isCartOpen = !!pendingReplacement;
+        pendingReplacement = null;
+        selectedProductForCustomization = null;
+        renderRestaurantMenu(container, navigateTo, slug);
+        showMenuToast('Este prato não está disponível no momento. Escolha outro item.');
+        return;
+      }
       const notesField = container.querySelector('#cust-notes-input');
       const notes = notesField ? notesField.value : '';
       const unitPrice = calculateCurrentCustomizationPrice(selectedProductForCustomization, currentCustomization);
 
+      if (pendingReplacement) store.removeFromCart(pendingReplacement.cartItemId);
       store.addToCart({
         productId: selectedProductForCustomization.id,
         productName: selectedProductForCustomization.name,
@@ -867,17 +940,25 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
         addons: currentCustomization.addons.map(a => a.name),
         notes: notes,
         unitPrice: unitPrice,
-        qty: 1
+        qty: pendingReplacement?.qty || 1
       }, restaurant.id);
 
       showMenuToast(`✓ ${selectedProductForCustomization.name} adicionada à sacola!`);
       selectedProductForCustomization = null;
+      isCartOpen = !!pendingReplacement;
+      pendingReplacement = null;
       renderRestaurantMenu(container, navigateTo, slug);
     });
   }
 
   // Carrinho
   if (isCartOpen) {
+    container.querySelectorAll('.remove-unavailable-item').forEach(button => {
+      button.addEventListener('click', () => {
+        store.removeFromCart(button.dataset.id);
+        renderRestaurantMenu(container, navigateTo, slug);
+      });
+    });
     container.querySelector('#btn-close-cart-modal')?.addEventListener('click', () => {
       isCartOpen = false;
       renderRestaurantMenu(container, navigateTo, slug);
@@ -929,6 +1010,13 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
     });
 
     container.querySelector('#btn-proceed-checkout')?.addEventListener('click', () => {
+      try {
+        store.validateOrderItems(restaurant.id, store.cart.filter(item => item.restaurantId === restaurant.id));
+      } catch (error) {
+        renderRestaurantMenu(container, navigateTo, slug);
+        showMenuToast(error.message);
+        return;
+      }
       isCartOpen = false;
       isCheckoutOpen = true;
       renderRestaurantMenu(container, navigateTo, slug);
@@ -993,30 +1081,38 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       tabPix.style.color = 'var(--text-main)';
     });
 
-    const handleCompletePayment = (method) => {
+    const handleCompletePayment = async (method) => {
+      if (store.orderPending) return;
       if (!store.cart.some(item => item.restaurantId === restaurant.id)) return;
-      if (!restaurant.isOpen) {
-        showMenuToast('O restaurante está fechado no momento.');
-        return;
-      }
       const name = container.querySelector('#cust-name-input')?.value || 'Cliente MarmitaFlow';
       const phone = container.querySelector('#cust-phone-input')?.value || '';
       const address = container.querySelector('#cust-address-input')?.value || 'Retirada no Balcão';
       const cartSummary = store.getCartTotal(restaurant);
       const effectiveFee = orderType === 'pickup' ? 0 : restaurant.deliveryFee;
-      const total = Math.max(0, (cartSummary.subtotal * (1 - discountPercent / 100)) + effectiveFee);
+      const total = Number(container.querySelector('#modal-checkout-overlay').dataset.total);
 
-      const newOrder = store.createOrder({
-        restaurantId: restaurant.id,
-        customerName: name,
-        customerPhone: phone,
-        address: orderType === 'pickup' ? 'Retirada no Balcão' : address,
-        paymentMethod: method,
-        subtotal: cartSummary.subtotal,
-        deliveryFee: effectiveFee,
-        total: total,
-        items: store.cart.filter(item => item.restaurantId === restaurant.id)
-      });
+      let newOrder;
+      try {
+        newOrder = await store.createOrder({
+          restaurantId: restaurant.id,
+          customerName: name,
+          customerPhone: phone,
+          address: orderType === 'pickup' ? 'Retirada no Balcão' : address,
+          paymentMethod: method,
+          orderType,
+          couponCode: discountPercent ? 'MARMITA10' : '',
+          subtotal: cartSummary.subtotal,
+          deliveryFee: effectiveFee,
+          total: total,
+          items: store.cart.filter(item => item.restaurantId === restaurant.id)
+        });
+      } catch (error) {
+        isCheckoutOpen = false;
+        isCartOpen = true;
+        renderRestaurantMenu(container, navigateTo, slug);
+        showMenuToast(error.message);
+        return;
+      }
 
       sounds.playSuccessSound();
       confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });

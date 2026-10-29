@@ -59,7 +59,7 @@ export function renderAboutView(container, navigateTo) {
           <span class="story-tag">O Restaurante Modelo</span>
           <h2>Conheça o Marmita Flow Oficial</h2>
           <p>
-            O <strong>Marmita Flow</strong> é o restaurante de demonstração da plataforma. Explore os pratos, personalize uma marmita e acompanhe um pedido até a cozinha. Os dados ficam salvos no navegador para você experimentar o fluxo completo.
+            O <strong>Marmita Flow</strong> é o restaurante de demonstração da plataforma. Explore os pratos, personalize uma marmita e acompanhe um pedido até a cozinha. Os dados são salvos no servidor; os pagamentos desta versão são simulados.
           </p>
           <div class="story-actions">
             <button class="btn-primary" id="btn-about-visit-mf">

@@ -1,5 +1,6 @@
 // MarmitaFlow - Login do Administrador do Restaurante (Área Restrita)
 import { store } from '../store.js';
+import { asyncAction } from '../ui.js';
 
 export function renderAdminLogin(container, navigateTo) {
   // Se já estiver logado, redireciona diretamente para o painel
@@ -86,12 +87,12 @@ export function renderAdminLogin(container, navigateTo) {
   `;
 
   // Listener de Submit
-  container.querySelector('#admin-login-form')?.addEventListener('submit', (e) => {
+  container.querySelector('#admin-login-form')?.addEventListener('submit', asyncAction(async (e) => {
     e.preventDefault();
     const email = container.querySelector('#admin-email-input').value;
     const pass = container.querySelector('#admin-pass-input').value;
 
-    const res = store.loginAdmin(email, pass);
+    const res = await store.loginAdmin(email, pass);
     if (res.success) {
       navigateTo('admin');
     } else {
@@ -101,21 +102,21 @@ export function renderAdminLogin(container, navigateTo) {
         alert.style.display = 'block';
       }
     }
-  });
+  }));
 
   // Atalhos rápidos
   container.querySelectorAll('.btn-quick-login').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', asyncAction(async () => {
       const email = btn.dataset.email;
       const pass = btn.dataset.pass;
       container.querySelector('#admin-email-input').value = email;
       container.querySelector('#admin-pass-input').value = pass;
       
-      const res = store.loginAdmin(email, pass);
+      const res = await store.loginAdmin(email, pass);
       if (res.success) {
         navigateTo('admin');
       }
-    });
+    }));
   });
 
   container.querySelector('#btn-go-register')?.addEventListener('click', () => navigateTo('criar-restaurante'));

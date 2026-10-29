@@ -2,6 +2,28 @@ export function escapeHTML(value) {
   return String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 }
 
+export function showActionError(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast-notice';
+  toast.setAttribute('role', 'alert');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 6000);
+}
+
+export function asyncAction(action) {
+  return async event => {
+    if (event.type === 'submit') event.preventDefault();
+    const target = event.currentTarget;
+    const control = target.matches('form') ? target.querySelector('[type="submit"]') : target;
+    if (control?.disabled) return;
+    if (control) control.disabled = true;
+    try { await action(event); }
+    catch (error) { showActionError(error.message || 'Não foi possível salvar. Tente novamente.'); }
+    finally { if (control?.isConnected) control.disabled = false; }
+  };
+}
+
 const themeProperties = ['--color-primary', '--color-primary-light', '--color-primary-dark', '--color-primary-hover', '--color-accent', '--color-secondary'];
 
 export function clearRestaurantTheme(container) {

@@ -1,6 +1,7 @@
 // MarmitaFlow - Cozinha Inteligente (KDS) por Restaurante
 import { store } from '../store.js';
 import { sounds } from '../audio.js';
+import { asyncAction, escapeHTML } from '../ui.js';
 
 export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') {
   const restaurant = store.getRestaurantBySlug(slug);
@@ -26,7 +27,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
             <button class="btn-secondary" id="btn-back-from-kds" style="background: var(--bg-surface); color: var(--text-secondary); border-color: var(--border-color); padding: 6px 14px; font-size: 0.82rem;">
               ← Voltar ao Painel
             </button>
-            <h1>Cozinha · ${restaurant.name}</h1>
+            <h1>Cozinha · ${escapeHTML(restaurant.name)}</h1>
           </div>
           <p>Comandas em tempo real para produção e expedição com checklist de montagem.</p>
         </div>
@@ -67,7 +68,7 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
               <div style="text-align: center; padding: 48px 12px; color: var(--text-muted);">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">⏳</div>
                 <div>Aguardando novos pedidos...</div>
-                <div style="font-size: 0.75rem; margin-top: 4px;">Faça um pedido no cardápio de ${restaurant.name} para vê-lo chegar aqui!</div>
+                <div style="font-size: 0.75rem; margin-top: 4px;">Faça um pedido no cardápio de ${escapeHTML(restaurant.name)} para vê-lo chegar aqui!</div>
               </div>
             ` : colRecebidos.map(order => renderOrderTicketHtml(order, 'recebido')).join('')}
           </div>
@@ -127,6 +128,8 @@ export function renderKitchenView(container, navigateTo, slug = 'marmita-flow') 
 function renderOrderTicketHtml(order, currentStatus) {
   const elapsedMinutes = Math.max(1, Math.round((Date.now() - new Date(order.createdAt).getTime()) / 60000));
   const checklist = order.checklist || {};
+  const checklistComplete = store.isOrderChecklistComplete(order);
+  const checkedCount = order.items.filter((_, index) => checklist[index] === true).length;
 
   return `
     <div class="kds-order-ticket">
@@ -134,7 +137,7 @@ function renderOrderTicketHtml(order, currentStatus) {
         <div>
           <span class="ticket-number">#${order.orderNumber}</span>
           <span style="font-size: 0.75rem; color: var(--status-ready); font-weight: 700; margin-left: 6px;">
-            ${order.paymentMethod} ✓
+            ${escapeHTML(order.paymentMethod)} · Simulado
           </span>
         </div>
         <div class="ticket-time">
@@ -143,10 +146,10 @@ function renderOrderTicketHtml(order, currentStatus) {
       </div>
 
       <div class="ticket-customer-name">
-        👤 ${order.customerName}
+        👤 ${escapeHTML(order.customerName)}
       </div>
       <div class="ticket-delivery-address">
-        📍 ${order.address}
+        📍 ${escapeHTML(order.address)}
       </div>
 
       <!-- Itens do Pedido -->
@@ -156,21 +159,21 @@ function renderOrderTicketHtml(order, currentStatus) {
           return `
             <div class="ticket-item-row">
               <div class="ticket-item-title">
-                ${item.qty}x ${item.productName}
+                ${item.qty}x ${escapeHTML(item.productName)}
               </div>
 
-              ${item.size ? `<div class="ticket-item-specs">📏 <strong>Tamanho:</strong> ${item.size}</div>` : ''}
-              ${item.protein ? `<div class="ticket-item-specs">🥩 <strong>Proteína:</strong> ${item.protein}</div>` : ''}
-              ${item.base ? `<div class="ticket-item-specs">🍚 <strong>Base:</strong> ${item.base} / ${item.beans || ''}</div>` : ''}
+              ${item.size ? `<div class="ticket-item-specs">📏 <strong>Tamanho:</strong> ${escapeHTML(item.size.replace(/^Tamanho\s+/i, ''))}</div>` : ''}
+              ${item.protein ? `<div class="ticket-item-specs">🥩 <strong>Proteína:</strong> ${escapeHTML(item.protein)}</div>` : ''}
+              ${item.base ? `<div class="ticket-item-specs">🍚 <strong>Base:</strong> ${escapeHTML(item.base)} / ${escapeHTML(item.beans || '')}</div>` : ''}
               ${item.sides && item.sides.length > 0 ? `
-                <div class="ticket-item-specs">🥗 <strong>Guarnições:</strong> ${item.sides.join(', ')}</div>
+                <div class="ticket-item-specs">🥗 <strong>Guarnições:</strong> ${escapeHTML(item.sides.join(', '))}</div>
               ` : ''}
               ${item.addons && item.addons.length > 0 ? `
-                <div class="ticket-item-specs" style="color: var(--status-info);">✨ <strong>Adicionais:</strong> ${item.addons.join(', ')}</div>
+                <div class="ticket-item-specs" style="color: var(--status-info);">✨ <strong>Adicionais:</strong> ${escapeHTML(item.addons.join(', '))}</div>
               ` : ''}
               ${item.notes ? `
                 <div class="ticket-item-notes">
-                  ⚠️ Obs: ${item.notes}
+                  ⚠️ Obs: ${escapeHTML(item.notes)}
                 </div>
               ` : ''}
 
@@ -182,6 +185,7 @@ function renderOrderTicketHtml(order, currentStatus) {
                   data-order-id="${order.id}" 
                   data-item-idx="${idx}" 
                   ${isChecked ? 'checked' : ''} 
+                  ${currentStatus === 'entregue' ? 'disabled' : ''}
                 />
                 <span style="${isChecked ? 'text-decoration: line-through; color: var(--status-ready);' : ''}">
                   ${isChecked ? '✓ Conferido na embalagem' : 'Conferir item na marmita'}
@@ -194,6 +198,7 @@ function renderOrderTicketHtml(order, currentStatus) {
 
       <!-- Botões de Avanço -->
       <div class="ticket-actions-bar">
+        <p class="checklist-progress" role="status">${checkedCount} de ${order.items.length} itens conferidos${!checklistComplete && currentStatus === 'pronto' ? ' · Confira todos os itens para despachar.' : ''}</p>
         ${currentStatus === 'recebido' ? `
           <button class="btn-kds-action btn-kds-orange btn-advance-order" data-id="${order.id}" data-next="preparo">
             🔥 Iniciar Preparo
@@ -207,7 +212,7 @@ function renderOrderTicketHtml(order, currentStatus) {
         ` : ''}
 
         ${currentStatus === 'pronto' ? `
-          <button class="btn-kds-action btn-kds-green btn-advance-order" data-id="${order.id}" data-next="entregue">
+          <button class="btn-kds-action btn-kds-green btn-advance-order" data-id="${order.id}" data-next="entregue" ${!checklistComplete ? 'disabled' : ''}>
             🛵 Despachado / Concluir
           </button>
         ` : ''}
@@ -230,20 +235,26 @@ function attachKDSEvents(container, restaurant, slug, navigateTo) {
   });
 
   container.querySelectorAll('.btn-advance-order').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', asyncAction(async () => {
       const id = btn.dataset.id;
       const nextStatus = btn.dataset.next;
-      store.updateOrderStatus(id, nextStatus);
+      try {
+        await store.updateOrderStatus(id, nextStatus);
+      } catch (error) {
+        const progress = btn.closest('.ticket-actions-bar').querySelector('.checklist-progress');
+        progress.textContent = error.message;
+        return;
+      }
       renderKitchenView(container, navigateTo, slug);
-    });
+    }));
   });
 
   container.querySelectorAll('.kds-check-item').forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
+    checkbox.addEventListener('change', asyncAction(async () => {
       const orderId = checkbox.dataset.orderId;
       const idx = parseInt(checkbox.dataset.itemIdx);
-      store.toggleOrderChecklist(orderId, idx);
+      await store.toggleOrderChecklist(orderId, idx);
       renderKitchenView(container, navigateTo, slug);
-    });
+    }));
   });
 }

@@ -1,7 +1,7 @@
 // MarmitaFlow - Painel Administrativo Protegido do Proprietário
 import { store } from '../store.js';
 import QRCode from 'qrcode';
-import { applyRestaurantTheme, restaurantMenuUrl, escapeHTML } from '../ui.js';
+import { applyRestaurantTheme, restaurantMenuUrl, escapeHTML, asyncAction } from '../ui.js';
 
 let activeAdminTab = 'branding'; // 'branding', 'menu', 'stock', 'qrcode'
 let editingProductId = null;
@@ -26,7 +26,6 @@ export function renderAdminDashboard(container, navigateTo) {
 
   const restaurant = store.getLoggedRestaurant();
   if (!restaurant) {
-    store.logoutAdmin();
     navigateTo('admin-login');
     return;
   }
@@ -43,10 +42,10 @@ export function renderAdminDashboard(container, navigateTo) {
       <!-- CABEÇALHO DO PAINEL PROTEGIDO -->
       <div class="admin-topbar">
         <div class="admin-topbar-brand">
-          <img src="${restaurant.logoUrl}" alt="${restaurant.name}" class="admin-topbar-logo" />
+          <img src="${escapeHTML(restaurant.logoUrl)}" alt="${escapeHTML(restaurant.name)}" class="admin-topbar-logo" />
           <div>
             <div class="admin-topbar-title">
-              <h1>${restaurant.name}</h1>
+              <h1>${escapeHTML(restaurant.name)}</h1>
               <span class="admin-badge-protected">🔒 Painel do Proprietário</span>
             </div>
             <p class="admin-topbar-user">
@@ -77,7 +76,7 @@ export function renderAdminDashboard(container, navigateTo) {
           <input class="form-input" id="restaurant-public-link" value="${escapeHTML(publicUrl)}" readonly />
           <button class="btn-primary" id="btn-copy-public-menu">Copiar link</button>
         </div>
-        <p class="share-demo-note">Nesta demonstração, cadastros, alterações e pedidos ficam neste navegador. Para receber pedidos de outras pessoas, será necessário conectar um banco de dados compartilhado e publicar o site.</p>
+        <p class="share-demo-note">Cadastros, cardápio e pedidos são salvos no servidor. Quando o site estiver publicado, este link permitirá receber pedidos de outros dispositivos. Os pagamentos continuam demonstrativos.</p>
       </section>
 
       <!-- MÉTRICAS DO RESTAURANTE -->
@@ -137,7 +136,7 @@ export function renderAdminDashboard(container, navigateTo) {
       ${activeAdminTab === 'branding' ? `
         <div class="owner-card-panel">
           <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 6px;">
-            Personalize a Identidade de ${restaurant.name}
+            Personalize a Identidade de ${escapeHTML(restaurant.name)}
           </h3>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">
             As alterações feitas aqui atualizam imediatamente o cardápio público dos seus clientes.
@@ -147,12 +146,12 @@ export function renderAdminDashboard(container, navigateTo) {
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">Nome do Estabelecimento</label>
-                <input type="text" id="dash-name-input" class="form-input" value="${restaurant.name}" required />
+                <input type="text" id="dash-name-input" class="form-input" value="${escapeHTML(restaurant.name)}" required />
               </div>
 
               <div class="form-group">
                 <label class="form-label">Slogan ou Descrição Curta</label>
-                <input type="text" id="dash-tagline-input" class="form-input" value="${restaurant.tagline}" />
+                <input type="text" id="dash-tagline-input" class="form-input" value="${escapeHTML(restaurant.tagline)}" />
               </div>
             </div>
 
@@ -180,12 +179,12 @@ export function renderAdminDashboard(container, navigateTo) {
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">Sua Chave Pix para Recebimento</label>
-                <input type="text" id="dash-pix-input" class="form-input" value="${restaurant.pixKey}" placeholder="CNPJ, Celular, E-mail ou Chave Aleatória" required />
+                <input type="text" id="dash-pix-input" class="form-input" value="${escapeHTML(restaurant.pixKey)}" placeholder="CNPJ, Celular, E-mail ou Chave Aleatória" required />
               </div>
 
               <div class="form-group">
                 <label class="form-label">WhatsApp para Notificações</label>
-                <input type="text" id="dash-phone-input" class="form-input" value="${restaurant.phone}" placeholder="(11) 98765-4321" />
+                <input type="text" id="dash-phone-input" class="form-input" value="${escapeHTML(restaurant.phone)}" placeholder="(11) 98765-4321" />
               </div>
             </div>
 
@@ -197,25 +196,25 @@ export function renderAdminDashboard(container, navigateTo) {
 
               <div class="form-group">
                 <label class="form-label">Tempo Médio Estimado</label>
-                <input type="text" id="dash-time-input" class="form-input" value="${restaurant.deliveryTime}" placeholder="Ex: 30-45 min" />
+                <input type="text" id="dash-time-input" class="form-input" value="${escapeHTML(restaurant.deliveryTime)}" placeholder="Ex: 30-45 min" />
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">URL da Foto de Logo</label>
-                <input type="text" id="dash-logo-input" class="form-input" value="${restaurant.logoUrl}" />
+                <input type="text" id="dash-logo-input" class="form-input" value="${escapeHTML(restaurant.logoUrl)}" />
               </div>
 
               <div class="form-group">
                 <label class="form-label">URL do Banner de Capa</label>
-                <input type="text" id="dash-banner-input" class="form-input" value="${restaurant.bannerUrl}" />
+                <input type="text" id="dash-banner-input" class="form-input" value="${escapeHTML(restaurant.bannerUrl)}" />
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 24px;">
               <label class="form-label">Endereço Completo</label>
-              <input type="text" id="dash-address-input" class="form-input" value="${restaurant.address}" />
+              <input type="text" id="dash-address-input" class="form-input" value="${escapeHTML(restaurant.address)}" />
             </div>
 
             <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
@@ -265,16 +264,16 @@ export function renderAdminDashboard(container, navigateTo) {
                   <tr>
                     <td>
                       <div class="table-product-cell">
-                        <img src="${prod.image || '/assets/feijoada_flow.jpg'}" alt="${prod.name}" class="table-product-thumb" />
+                        <img src="${escapeHTML(prod.image || '/assets/feijoada_flow.jpg')}" alt="${escapeHTML(prod.name)}" class="table-product-thumb" />
                         <div>
-                          <div style="font-weight: 700; color: var(--text-main);">${prod.name}</div>
-                          ${prod.badge ? `<span style="font-size: 0.72rem; color: var(--color-primary); font-weight: 700;">${prod.badge}</span>` : ''}
+                          <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(prod.name)}</div>
+                          ${prod.badge ? `<span style="font-size: 0.72rem; color: var(--color-primary); font-weight: 700;">${escapeHTML(prod.badge)}</span>` : ''}
                         </div>
                       </div>
                     </td>
                     <td>
                       <span style="background: var(--bg-subtle); padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 600;">
-                        ${prod.category}
+                        ${escapeHTML(prod.category)}
                       </span>
                     </td>
                     <td style="font-weight: 800; color: var(--color-primary);">
@@ -322,9 +321,9 @@ export function renderAdminDashboard(container, navigateTo) {
             ${products.map(prod => `
               <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                  <img src="${prod.image || '/assets/feijoada_flow.jpg'}" alt="${prod.name}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover;" />
+                  <img src="${escapeHTML(prod.image || '/assets/feijoada_flow.jpg')}" alt="${escapeHTML(prod.name)}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover;" />
                   <div>
-                    <div style="font-weight: 700; font-size: 0.92rem;">${prod.name}</div>
+                    <div style="font-weight: 700; font-size: 0.92rem;">${escapeHTML(prod.name)}</div>
                     <div style="font-size: 0.78rem; color: ${prod.available ? 'var(--color-secondary-hover)' : 'var(--color-danger)'}; font-weight: 700;">
                       ${prod.available ? '🟢 Em Estoque' : '🔴 Esgotado na Cozinha'}
                     </div>
@@ -346,7 +345,7 @@ export function renderAdminDashboard(container, navigateTo) {
         <div class="owner-card-panel">
           <div style="text-align: center; max-width: 600px; margin: 0 auto 32px;">
             <h3 style="font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: 8px;">
-              Display de Mesa para ${restaurant.name}
+              Display de Mesa para ${escapeHTML(restaurant.name)}
             </h3>
             <p style="font-size: 0.9rem; color: var(--text-muted);">
               Imprima este totem e cole nas mesas do seu salão ou no balcão para os clientes acessarem seu cardápio direto pelo celular!
@@ -355,9 +354,9 @@ export function renderAdminDashboard(container, navigateTo) {
 
           <div class="table-tent-preview-card" id="admin-table-tent">
             <div class="table-tent-brand">
-              <img src="${restaurant.logoUrl}" alt="Logo" />
-              <div class="table-tent-title">${restaurant.name}</div>
-              <div style="font-size: 0.85rem; color: var(--text-muted);">${restaurant.tagline}</div>
+              <img src="${escapeHTML(restaurant.logoUrl)}" alt="Logo" />
+              <div class="table-tent-title">${escapeHTML(restaurant.name)}</div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">${escapeHTML(restaurant.tagline)}</div>
             </div>
 
             <div class="table-tent-instruction" style="color: ${restaurant.primaryColor};">
@@ -409,7 +408,7 @@ function renderProductModalHtml(editId, restaurant) {
           <div class="modal-scroll-body">
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label">Nome do Prato</label>
-              <input type="text" id="m-prod-name" class="form-input" value="${prod?.name || ''}" placeholder="Ex: Marmita de Costela com Mandioca" required />
+              <input type="text" id="m-prod-name" class="form-input" value="${escapeHTML(prod?.name || '')}" placeholder="Ex: Marmita de Costela com Mandioca" required />
             </div>
 
             <div class="form-grid-2" style="margin-bottom: 14px;">
@@ -433,12 +432,12 @@ function renderProductModalHtml(editId, restaurant) {
 
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label">Descrição Apetite</label>
-              <textarea id="m-prod-desc" class="form-textarea" style="height: 70px; resize: none;" placeholder="Descreva os ingredientes saborosos deste prato...">${prod?.description || ''}</textarea>
+              <textarea id="m-prod-desc" class="form-textarea" style="height: 70px; resize: none;" placeholder="Descreva os ingredientes saborosos deste prato...">${escapeHTML(prod?.description || '')}</textarea>
             </div>
 
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label">Foto do Prato</label>
-              <input type="text" id="m-prod-image" class="form-input" value="${prod?.image || '/assets/feijoada_flow.jpg'}" />
+              <input type="text" id="m-prod-image" class="form-input" value="${escapeHTML(prod?.image || '/assets/feijoada_flow.jpg')}" />
               <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
                 <span class="btn-secondary btn-quick-photo" data-url="/assets/feijoada_flow.jpg" style="padding: 2px 8px; font-size: 0.72rem; cursor: pointer;">Feijoada</span>
                 <span class="btn-secondary btn-quick-photo" data-url="/assets/frango_grelhado.jpg" style="padding: 2px 8px; font-size: 0.72rem; cursor: pointer;">Frango</span>
@@ -452,7 +451,7 @@ function renderProductModalHtml(editId, restaurant) {
             <div class="form-grid-2" style="margin-bottom: 14px;">
               <div class="form-group">
                 <label class="form-label">Badge de Destaque</label>
-                <input type="text" id="m-prod-badge" class="form-input" value="${prod?.badge || ''}" placeholder="Ex: Mais Vendido 🔥, Fit 🥗" />
+                <input type="text" id="m-prod-badge" class="form-input" value="${escapeHTML(prod?.badge || '')}" placeholder="Ex: Mais Vendido 🔥, Fit 🥗" />
               </div>
 
               <div class="form-group">
@@ -503,10 +502,10 @@ function attachAdminEvents(container, restaurant, navigateTo) {
     navigateTo('cozinha', restaurant.slug);
   });
 
-  container.querySelector('#btn-admin-logout')?.addEventListener('click', () => {
-    store.logoutAdmin();
+  container.querySelector('#btn-admin-logout')?.addEventListener('click', asyncAction(async () => {
+    await store.logoutAdmin();
     navigateTo('admin-login');
-  });
+  }));
 
   // Aba 1: Branding
   if (activeAdminTab === 'branding') {
@@ -533,9 +532,9 @@ function attachAdminEvents(container, restaurant, navigateTo) {
       applyRestaurantTheme(container, restaurant, chosenColor);
     });
 
-    container.querySelector('#admin-branding-form')?.addEventListener('submit', (e) => {
+    container.querySelector('#admin-branding-form')?.addEventListener('submit', asyncAction(async (e) => {
       e.preventDefault();
-      store.updateRestaurant(restaurant.id, {
+      await store.updateRestaurant(restaurant.id, {
         name: container.querySelector('#dash-name-input').value,
         tagline: container.querySelector('#dash-tagline-input').value,
         primaryColor: chosenColor,
@@ -551,7 +550,7 @@ function attachAdminEvents(container, restaurant, navigateTo) {
 
       showDashToast('✓ Configurações salvas com sucesso!');
       renderAdminDashboard(container, navigateTo);
-    });
+    }));
   }
 
   // Aba 2: Menu CRUD
@@ -571,27 +570,28 @@ function attachAdminEvents(container, restaurant, navigateTo) {
     });
 
     container.querySelectorAll('.btn-dash-delete-prod').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', asyncAction(async () => {
         const id = btn.dataset.id;
         if (confirm('Deseja realmente remover este prato do seu cardápio?')) {
-          store.deleteProduct(id);
+          await store.deleteProduct(id);
           showDashToast('Prato removido.');
           renderAdminDashboard(container, navigateTo);
         }
-      });
+      }));
     });
   }
 
   // Aba 3: Estoque
   if (activeAdminTab === 'stock') {
     container.querySelectorAll('.dash-stock-toggle').forEach(input => {
-      input.addEventListener('change', () => {
+      input.addEventListener('change', asyncAction(async () => {
         const id = input.dataset.id;
-        store.toggleStock(id);
+        try { await store.toggleStock(id); }
+        catch (error) { input.checked = !input.checked; throw error; }
         const prod = store.products.find(p => p.id === id);
         showDashToast(`${prod.name}: ${prod.available ? 'Em estoque' : 'Marcado como ESGOTADO'}`);
         renderAdminDashboard(container, navigateTo);
-      });
+      }));
     });
   }
 
@@ -637,7 +637,7 @@ function attachAdminEvents(container, restaurant, navigateTo) {
       });
     });
 
-    container.querySelector('#dash-product-form')?.addEventListener('submit', (e) => {
+    container.querySelector('#dash-product-form')?.addEventListener('submit', asyncAction(async (e) => {
       e.preventDefault();
       const productData = {
         restaurantId: restaurant.id,
@@ -651,16 +651,16 @@ function attachAdminEvents(container, restaurant, navigateTo) {
       };
 
       if (editingProductId) {
-        store.updateProduct(editingProductId, productData);
+        await store.updateProduct(editingProductId, productData);
         showDashToast('✓ Prato atualizado no cardápio!');
       } else {
-        store.addProduct(productData);
+        await store.addProduct(productData);
         showDashToast('✓ Novo prato cadastrado no cardápio!');
       }
 
       isProductModalOpen = false;
       renderAdminDashboard(container, navigateTo);
-    });
+    }));
   }
 }
 
@@ -670,7 +670,7 @@ function showDashToast(msg) {
 
   const toast = document.createElement('div');
   toast.className = 'toast-notice';
-  toast.innerHTML = `<span>${msg}</span>`;
+  toast.textContent = msg;
   document.body.appendChild(toast);
 
   setTimeout(() => {

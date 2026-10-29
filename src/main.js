@@ -1,7 +1,7 @@
 // MarmitaFlow - Entrada Principal com Roteamento Hash e Multi-Tenant
 import './style.css';
 import './refinements.css';
-import { setupAccessibility, escapeHTML, clearRestaurantTheme } from './ui.js';
+import { setupAccessibility, escapeHTML, clearRestaurantTheme, asyncAction } from './ui.js';
 import { store, STORAGE_KEYS } from './store.js';
 import { sounds } from './audio.js';
 
@@ -60,10 +60,10 @@ function initApp() {
             Início
           </button>
           <button class="nav-tab-btn" data-target="marmita-flow">
-            Restaurante Conceito
+            Ver demonstração
           </button>
           <button class="nav-tab-btn" data-target="criar-restaurante">
-            Abrir Restaurante
+            Criar cardápio
           </button>
           <button class="nav-tab-btn" data-target="sobre">
             Sobre o Projeto
@@ -140,6 +140,15 @@ function initApp() {
     if (route === 'cardapio' && !document.querySelector('input:focus, textarea:focus')) renderActiveRoute();
     if (route === 'admin' && !store.getLoggedRestaurant()) navigateTo('admin-login');
   });
+  window.addEventListener('marmitaflow:sync', () => {
+    const { route } = parseHash();
+    if (['admin', 'cozinha'].includes(route) && !store.getLoggedRestaurant()) {
+      navigateTo('admin-login');
+      return;
+    }
+    const editing = document.querySelector('input:focus, textarea:focus, select:focus, #modal-cart-overlay, #modal-checkout-overlay, #modal-customization-overlay');
+    if (!editing && ['plataforma', 'cardapio'].includes(route)) renderActiveRoute();
+  });
 }
 
 function updateHeaderUI() {
@@ -173,17 +182,17 @@ function updateHeaderUI() {
         </button>
       `;
       actionsArea.querySelector('#btn-hdr-admin')?.addEventListener('click', () => navigateTo('admin'));
-      actionsArea.querySelector('#btn-hdr-logout')?.addEventListener('click', () => {
-        store.logoutAdmin();
+      actionsArea.querySelector('#btn-hdr-logout')?.addEventListener('click', asyncAction(async () => {
+        await store.logoutAdmin();
         navigateTo('admin-login');
-      });
+      }));
     } else {
       actionsArea.innerHTML = `
         <button class="btn-secondary" id="btn-hdr-login" style="font-size: 0.85rem; padding: 8px 16px;">
           Área do Dono
         </button>
         <button class="btn-primary" id="btn-hdr-create" style="font-size: 0.85rem; padding: 8px 16px;">
-          Cadastrar Loja
+          Criar meu cardápio
         </button>
       `;
       actionsArea.querySelector('#btn-hdr-login')?.addEventListener('click', () => navigateTo('admin-login'));
@@ -201,7 +210,7 @@ function renderActiveRoute() {
   document.documentElement.style.removeProperty('--color-secondary');
   clearRestaurantTheme(viewRoot);
   document.body.dataset.page = route;
-  const titles = { plataforma: 'Cardápios digitais para marmitarias', cardapio: 'Cardápio', admin: 'Painel do restaurante', 'admin-login': 'Área do dono', 'criar-restaurante': 'Cadastrar restaurante', cozinha: 'Cozinha', sobre: 'Sobre o projeto' };
+  const titles = { plataforma: 'Cardápios digitais para restaurantes', cardapio: 'Cardápio', admin: 'Painel do restaurante', 'admin-login': 'Área do dono', 'criar-restaurante': 'Criar meu cardápio', cozinha: 'Cozinha', sobre: 'Sobre o projeto' };
   document.title = `${titles[route] || titles.plataforma} | MarmitaFlow`;
 
   switch (route) {
@@ -230,6 +239,10 @@ function renderActiveRoute() {
       break;
 
     case 'cozinha':
+      if (!store.getLoggedRestaurant() || store.getLoggedRestaurant().slug !== param) {
+        navigateTo('admin-login');
+        return;
+      }
       renderKitchenView(viewRoot, navigateTo, param || 'marmita-flow');
       break;
 
@@ -244,6 +257,16 @@ function renderActiveRoute() {
 }
 
 // Inicializar quando o DOM estiver pronto
-window.addEventListener('DOMContentLoaded', () => {
-  initApp();
+window.addEventListener('DOMContentLoaded', async () => {
+  const app = document.getElementById('app');
+  app.textContent = 'Carregando o cardápio…';
+  try {
+    await store.connect();
+    prevOrderCount = store.orders.length;
+    initApp();
+  } catch (error) {
+    app.innerHTML = '<main class="auth-card"><h1>Não foi possível carregar o cardápio</h1><p id="connection-error" role="alert"></p><button class="btn-primary" id="retry-connection">Tentar novamente</button></main>';
+    document.getElementById('connection-error').textContent = error.message;
+    document.getElementById('retry-connection').onclick = () => location.reload();
+  }
 });

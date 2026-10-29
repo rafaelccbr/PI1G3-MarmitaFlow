@@ -462,3 +462,29 @@ body[data-page="admin"] { background: var(--bg-surface); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+/* Disponibilidade e conferência usam as cores já definidas pelo restaurante. */
+.availability-warning {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  font-size: .875rem;
+  overflow-wrap: anywhere;
+}
+.stock-alternative {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.remove-unavailable-item { margin-top: 10px; }
+.availability-note, .checklist-progress {
+  margin-top: 10px;
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+.checklist-progress { margin: 0 0 8px; }
