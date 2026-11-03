@@ -24,6 +24,12 @@ dist-ssr
 *.sw?
 .wrangler
 
+# Local environment variables and secrets
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+
 # Local design tools, browser captures and review reports
 /.agents/
 /.taste-skill/
