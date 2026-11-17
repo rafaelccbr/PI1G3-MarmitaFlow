@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
 import { escapeHTML, applyRestaurantTheme } from '../ui.js';
 import { menuIcon } from '../menu-icons.js';
+import { orderCustomer } from '../order-customer.js';
 import '../menu-polish.css';
 
 let activeCategory = 'Todos';
@@ -19,8 +20,10 @@ let couponCode = '';
 let orderType = 'delivery'; // 'delivery' ou 'pickup'
 let activeRestaurantSlug = null;
 let pendingReplacement = null;
+let checkoutDraft = { customerName: '', customerPhone: '', address: '' };
 
 export function resetMenuState() {
+  checkoutDraft = { customerName: '', customerPhone: '', address: '' };
   selectedProductForCustomization = null;
   currentCustomization = null;
   pendingReplacement = null;
@@ -577,12 +580,17 @@ function renderCheckoutModalHtml(finalTotal, restaurant) {
           <p class="demo-notice">Este pedido é uma simulação. Nenhum valor será cobrado e não há confirmação bancária nesta versão.</p>
           <div style="margin-bottom: 24px;">
             <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 800; margin-bottom: 12px;">
-              📍 Seus Dados para Entrega
+              📍 Seus dados para ${orderType === 'pickup' ? 'retirada' : 'entrega'}
             </h4>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-              <input type="text" id="cust-name-input" class="form-input" placeholder="Seu nome completo" value="Rafael Miquelin" required />
-              <input type="text" id="cust-phone-input" class="form-input" placeholder="WhatsApp para confirmação" value="(11) 98765-4321" required />
-              <input type="text" id="cust-address-input" class="form-input" placeholder="Endereço de entrega (Rua, Número, Apto)" value="Av. Paulista, 1000 - Apto 82" required />
+              <label for="cust-name-input">Nome</label>
+              <input type="text" id="cust-name-input" class="form-input" autocomplete="name" maxlength="200" placeholder="Seu nome" value="${escapeHTML(checkoutDraft.customerName)}" required />
+              <label for="cust-phone-input">Telefone com DDD</label>
+              <input type="tel" id="cust-phone-input" class="form-input" autocomplete="tel" maxlength="25" placeholder="(11) 99999-9999" value="${escapeHTML(checkoutDraft.customerPhone)}" required />
+              ${orderType === 'pickup' ? '<p>Retirada no balcão. Não é necessário informar endereço.</p>' : `
+                <label for="cust-address-input">Endereço de entrega</label>
+                <input type="text" id="cust-address-input" class="form-input" autocomplete="street-address" maxlength="500" placeholder="Rua, número e complemento" value="${escapeHTML(checkoutDraft.address)}" required />
+              `}
             </div>
           </div>
 
@@ -1025,6 +1033,17 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
 
   // Checkout
   if (isCheckoutOpen) {
+    const customerFields = {
+      customerName: container.querySelector('#cust-name-input'),
+      customerPhone: container.querySelector('#cust-phone-input'),
+      address: container.querySelector('#cust-address-input')
+    };
+    for (const [key, field] of Object.entries(customerFields)) {
+      field?.addEventListener('input', () => {
+        checkoutDraft[key] = field.value;
+        field.setCustomValidity('');
+      });
+    }
     container.querySelector('#btn-close-checkout')?.addEventListener('click', () => {
       isCheckoutOpen = false;
       renderRestaurantMenu(container, navigateTo, slug);
@@ -1084,9 +1103,20 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
     const handleCompletePayment = async (method) => {
       if (store.orderPending) return;
       if (!store.cart.some(item => item.restaurantId === restaurant.id)) return;
-      const name = container.querySelector('#cust-name-input')?.value || 'Cliente MarmitaFlow';
-      const phone = container.querySelector('#cust-phone-input')?.value || '';
-      const address = container.querySelector('#cust-address-input')?.value || 'Retirada no Balcão';
+      let customerDetails;
+      try {
+        customerDetails = orderCustomer({
+          customerName: customerFields.customerName.value,
+          customerPhone: customerFields.customerPhone.value,
+          address: customerFields.address?.value,
+          orderType
+        });
+      } catch (error) {
+        const field = customerFields[error.field];
+        field?.setCustomValidity(error.message);
+        field?.reportValidity();
+        return;
+      }
       const cartSummary = store.getCartTotal(restaurant);
       const effectiveFee = orderType === 'pickup' ? 0 : restaurant.deliveryFee;
       const total = Number(container.querySelector('#modal-checkout-overlay').dataset.total);
@@ -1095,9 +1125,7 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       try {
         newOrder = await store.createOrder({
           restaurantId: restaurant.id,
-          customerName: name,
-          customerPhone: phone,
-          address: orderType === 'pickup' ? 'Retirada no Balcão' : address,
+          ...customerDetails,
           paymentMethod: method,
           orderType,
           couponCode: discountPercent ? 'MARMITA10' : '',
@@ -1107,9 +1135,11 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
           items: store.cart.filter(item => item.restaurantId === restaurant.id)
         });
       } catch (error) {
-        isCheckoutOpen = false;
-        isCartOpen = true;
-        renderRestaurantMenu(container, navigateTo, slug);
+        if (error.status === 409) {
+          isCheckoutOpen = false;
+          isCartOpen = true;
+          renderRestaurantMenu(container, navigateTo, slug);
+        }
         showMenuToast(error.message);
         return;
       }
@@ -1118,6 +1148,7 @@ function attachMenuEvents(container, restaurant, slug, navigateTo) {
       confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
 
       isCheckoutOpen = false;
+      checkoutDraft = { customerName: '', customerPhone: '', address: '' };
       activeOrderTrackingId = newOrder.id;
       renderRestaurantMenu(container, navigateTo, slug);
       showMenuToast(`🎉 Pedido #${newOrder.orderNumber} realizado com sucesso! Enviado à cozinha!`);

@@ -1,7 +1,7 @@
 ﻿# MarmitaFlow
 
 Cardápio digital que conecta pedido, disponibilidade dos pratos e cozinha.
-Projeto acadêmico integrador de Vinícius Spejo da Silva, Rafael Miquelin, Matheus Nery e João Vitor dos Santos.
+Projeto acadêmico integrador de Vinícius Spejo, Rafael Miquelin, Matheus Nery e João Vitor dos Santos.
 
 ## Persistência e pagamentos
 
@@ -31,6 +31,17 @@ Abra `http://localhost:5173/`. O emulador usa um D1 **local**, separado do banco
 | Cantina da Nona | nona@cantina.com | 123456 |
 
 Essas duas contas são públicas e demonstrativas. Para dados próprios, cadastre um restaurante com credenciais próprias. A cozinha exige login do proprietário correspondente.
+
+## Roteiro de apresentação
+
+1. Abra o cardápio do Marmita Flow em uma janela e a cozinha em outra, usando a conta de demonstração do restaurante.
+2. Monte uma marmita, escolha entrega ou retirada e confira os valores na sacola. Na retirada, não há taxa de entrega nem solicitação de endereço.
+3. Preencha nome e telefone com DDD; para entrega, informe também o endereço. Use dados fictícios na apresentação. Simule o pagamento Pix ou cartão.
+4. Na cozinha, avance o pedido de recebido para em preparo e pronto. Confira todos os itens antes de marcar como entregue.
+5. Volte à janela do cliente e mostre o acompanhamento. As atualizações podem levar até 8 segundos.
+6. No painel do proprietário, marque um prato como esgotado e mostre a mudança no cardápio do cliente.
+
+Os pedidos da demonstração ficam salvos. Para ensaiar sem alterar o ambiente publicado, execute o projeto com o D1 local.
 
 ## Rotas
 

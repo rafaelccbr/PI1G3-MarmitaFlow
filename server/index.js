@@ -1,5 +1,6 @@
 import { HttpError, text, restaurantUpdates, productUpdates, priceOrderItems } from './validation.js';
 import { randomToken, hashToken, passwordHash, constantTimeEqual, cookieValue, cookie } from './security.js';
+import { orderCustomer } from '../src/order-customer.js';
 
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
 const CUSTOMER_SECONDS = 60 * 60 * 24 * 30;
@@ -180,11 +181,12 @@ async function api(request, env, headers) {
     const deliveryFee = input.orderType === 'pickup' ? 0 : profile(rest).deliveryFee;
     const totalCents = Math.round(subtotalCents * (coupon ? 0.9 : 1)) + Math.round(deliveryFee * 100);
     if (Math.round(Number(input.total) * 100) !== totalCents) throw new HttpError(409, 'O preço foi atualizado. Revise a sacola antes de confirmar.');
+    let customerDetails;
+    try { customerDetails = orderCustomer(input); }
+    catch (error) { throw new HttpError(400, error.message); }
     const order = {
       id: 'ord-' + crypto.randomUUID(), restaurantId: rest.id,
-      customerName: text(input.customerName || 'Cliente MarmitaFlow', 'nome', 200),
-      customerPhone: text(input.customerPhone || '', 'telefone', 80, false),
-      address: input.orderType === 'pickup' ? 'Retirada no Balcão' : text(input.address, 'endereço', 500),
+      ...customerDetails,
       status: 'recebido', createdAt: new Date().toISOString(), paymentMethod: input.paymentMethod,
       paymentStatus: 'Simulado', subtotal: subtotalCents / 100, deliveryFee, total: totalCents / 100, items, checklist: {}
     };

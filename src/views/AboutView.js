@@ -85,7 +85,7 @@ export function renderAboutView(container, navigateTo) {
         <div class="team-grid">
           <div class="team-card">
             <div class="team-avatar">VS</div>
-            <h4>Vinícius Spejo da Silva</h4>
+            <h4>Vinícius Spejo</h4>
           </div>
 
           <div class="team-card featured">

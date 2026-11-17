@@ -52,6 +52,29 @@ const meal = () => ({
 });
 const orderData = (overrides = {}) => ({ restaurantId: 'rest-marmita-flow', requestId: crypto.randomUUID(), customerName: 'Cliente teste', customerPhone: '11999999999', address: 'Rua de teste, 10', orderType: 'delivery', paymentMethod: 'Pix', total: 34.9, items: [meal()], ...overrides });
 
+test('API validates customer details and accepts pickup without a delivery address', async () => {
+  const { db, sqlite } = database();
+  try {
+    const customer = client(db);
+    for (const invalid of [
+      { customerName: '   ' }, { customerName: '' },
+      { customerPhone: '' }, { customerPhone: '123' },
+      { customerPhone: 'abc11999999999' }, { address: '   ' }
+    ]) {
+      assert.equal((await customer('/orders', 'POST', orderData(invalid))).status, 400);
+    }
+    assert.equal(sqlite.prepare('SELECT count(*) AS n FROM orders').get().n, 0);
+    const delivery = await customer('/orders', 'POST', orderData({ customerName: '  Cliente teste  ', customerPhone: '+55 (11) 99999-9999' }));
+    assert.equal(delivery.status, 200);
+    assert.equal(delivery.data.order.customerName, 'Cliente teste');
+    assert.equal(delivery.data.order.customerPhone, '11999999999');
+    const pickup = await customer('/orders', 'POST', orderData({ orderType: 'pickup', address: '', customerPhone: '(11) 3333-4444', total: 31.9 }));
+    assert.equal(pickup.status, 200);
+    assert.equal(pickup.data.order.address, 'Retirada no Balcão');
+    assert.equal(pickup.data.order.deliveryFee, 0);
+  } finally { sqlite.close(); }
+});
+
 test('API hides credentials and orders, validates login and revokes sessions on logout', async () => {
   const { db, sqlite } = database();
   try {

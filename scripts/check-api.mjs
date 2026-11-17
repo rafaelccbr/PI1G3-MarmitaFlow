@@ -20,7 +20,7 @@ assert.equal((await customer('/health')).data.storage, 'd1');
 assert.equal((await customer('/state')).data.restaurants.length >= 2, true);
 assert.equal((await owner('/auth/login', 'POST', { email: 'admin@marmitaflow.com', password: '123456' })).status, 200);
 const payload = {
-  restaurantId: 'rest-marmita-flow', customerName: 'Verificação da integração D1', customerPhone: '', address: 'Retirada no Balcão',
+  restaurantId: 'rest-marmita-flow', customerName: 'Verificação da integração D1', customerPhone: '11999999999', address: 'Retirada no Balcão',
   orderType: 'pickup', paymentMethod: 'Pix', total: 31.9, requestId: crypto.randomUUID(),
   items: [{ productId: 'prod-mf-frango', qty: 1, size: CUSTOMIZATION_OPTIONS.sizes[1].name,
     protein: CUSTOMIZATION_OPTIONS.proteins[0].name, base: CUSTOMIZATION_OPTIONS.bases[0].name,
